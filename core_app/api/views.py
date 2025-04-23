@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from core_app.models import Offer, Order, Rating
+from rest_framework.response import Response
 
 
 class OfferViewSet(viewsets.ModelViewSet):
@@ -29,4 +30,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class BaseInfoView(APIView):
-    pass
+    def get(self, request):
+        data = {
+            "review_count": 10,
+            "average_rating": 4.6,
+            "business_profile_count": 45,
+            "offer_count": 150
+        }
+        return Response(data)
