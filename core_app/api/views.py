@@ -1,8 +1,26 @@
 from rest_framework import viewsets
+from rest_framework.generics import UpdateAPIView, RetrieveAPIView
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from core_app.models import Offer, Order, Rating
 from rest_framework.response import Response
+
+
+class ProfileDetailView(RetrieveAPIView):
+    pass
+
+
+class ProfileUpdateView(UpdateAPIView):
+    pass
+
+
+class ProfileBusinessListView(ListAPIView):
+    pass
+
+
+class ProfileCustomerListView(ListAPIView):
+    pass
 
 
 class OfferViewSet(viewsets.ModelViewSet):
