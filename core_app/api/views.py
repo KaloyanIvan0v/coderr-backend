@@ -1,18 +1,19 @@
-from rest_framework import viewsets
-from rest_framework.generics import UpdateAPIView, RetrieveAPIView
-from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from core_app.models import Offer, Order, Rating
-from rest_framework.response import Response
-from .serializers import ProfileDetailSerializer
-from user_auth_app.models import UserProfile
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
+from rest_framework import viewsets
+from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+
+from core_app.models import Offer, Order, Rating, OfferDetails, OfferFeatures
+from .serializers import ProfileDetailSerializer, OfferSerializer, \
+    OfferDetailSerializer, OfferFeaturesSerializer
+from user_auth_app.models import UserProfile
+
 
 class ProfileDetailView(RetrieveAPIView):
-    permission_classes = [AllowAny]
     queryset = UserProfile.objects.all()
     serializer_class = ProfileDetailSerializer
 
@@ -36,10 +37,17 @@ class ProfileCustomerListView(ListAPIView):
 
 class OfferViewSet(viewsets.ModelViewSet):
     queryset = Offer.objects.all()
+    serializer_class = OfferSerializer
 
 
-class OfferDetailView(APIView):
-    pass
+class OfferDetailViewSet(viewsets.ModelViewSet):
+    queryset = OfferDetails.objects.all()
+    serializer_class = OfferDetailSerializer
+
+
+class OfferFeaturesViewSet(viewsets.ModelViewSet):
+    queryset = OfferFeatures.objects.all()
+    serializer_class = OfferFeaturesSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
