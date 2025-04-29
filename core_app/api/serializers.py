@@ -27,6 +27,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetails
+        user = serializers.PrimaryKeyRelatedField(
+            queryset=UserProfile.objects.all())
         fields = ['id', 'offer', 'title', 'revisions', 'delivery_time_in_days',
                   'price', 'features', 'offer_type']
 
