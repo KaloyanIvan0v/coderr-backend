@@ -21,6 +21,11 @@ class OfferFeaturesSerializer(serializers.ModelSerializer):
         model = OfferFeatures
         fields = ['id', 'feature']
 
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            return {'feature': data}
+        return super().to_internal_value(data)
+
 
 class OfferDetailSerializer(serializers.ModelSerializer):
     features = OfferFeaturesSerializer(many=True)
@@ -31,6 +36,9 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             queryset=UserProfile.objects.all())
         fields = ['id', 'offer', 'title', 'revisions', 'delivery_time_in_days',
                   'price', 'features', 'offer_type']
+        extra_kwargs = {
+            'offer': {'required': False}
+        }
 
     def create(self, validated_data):
         features_data = validated_data.pop('features')
