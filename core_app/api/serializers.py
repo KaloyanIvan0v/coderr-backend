@@ -19,12 +19,15 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
 class OfferFeaturesSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferFeatures
-        fields = ['id', 'feature']
+        fields = ['feature']
 
     def to_internal_value(self, data):
         if isinstance(data, str):
             return {'feature': data}
         return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        return instance.feature
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
@@ -74,6 +77,37 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         return instance
 
 
+class OfferDetailReferenceSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OfferDetails
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        return f"/offerdetails/{obj.id}/"
+
+# Create a separate serializer for listing offers
+
+
+class OfferListSerializer(serializers.ModelSerializer):
+    details = OfferDetailReferenceSerializer(many=True, read_only=True)
+    user_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = ['id', 'user', 'title', 'image', 'description',
+                  'created_at', 'updated_at', 'details', 'min_price',
+                  'min_delivery_time', 'user_details']
+
+    def get_user_details(self, obj):
+        return {
+            'first_name': obj.user.user.first_name,
+            'last_name': obj.user.user.last_name,
+            'username': obj.user.user.username
+        }
+
+
 class OfferSerializer(serializers.ModelSerializer):
     details = OfferDetailSerializer(many=True)
 
@@ -81,6 +115,9 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ['id', 'user', 'title', 'image', 'description',
                   'created_at', 'updated_at', 'details', 'min_price', 'min_delivery_time']
+
+    def get_user(self, obj):
+        return obj.user.id
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')

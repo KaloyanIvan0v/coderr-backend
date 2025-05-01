@@ -6,11 +6,16 @@ from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from core_app.models import Offer, Order, Rating, OfferDetails, OfferFeatures
 from .serializers import ProfileDetailSerializer, OfferSerializer, \
-    OfferDetailSerializer, OfferFeaturesSerializer
+    OfferDetailSerializer, OfferFeaturesSerializer, OfferListSerializer
 from user_auth_app.models import UserProfile
+
+
+class OfferPageViewPagination(PageNumberPagination):
+    page_size = 6
 
 
 class ProfileDetailView(RetrieveAPIView):
@@ -36,8 +41,13 @@ class ProfileCustomerListView(ListAPIView):
 
 
 class OfferViewSet(viewsets.ModelViewSet):
-    queryset = Offer.objects.all()
-    serializer_class = OfferSerializer
+    queryset = Offer.objects.all().order_by('-created_at')
+    pagination_class = OfferPageViewPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return OfferSerializer
+        return OfferListSerializer
 
 
 class OfferDetailViewSet(viewsets.ModelViewSet):
