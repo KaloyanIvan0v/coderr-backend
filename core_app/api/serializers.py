@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from user_auth_app.models import UserProfile
-from core_app.models import Offer, OfferDetails, OfferFeatures
+from core_app.models import Offer, OfferDetails, OfferFeatures, Order
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
@@ -160,3 +160,22 @@ class OfferSerializer(serializers.ModelSerializer):
                         offer_detail=offer_detail, **feature_data)
 
         return instance
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['id', 'offer', 'customer_user', 'business_user',
+                  'status', 'created_at', 'updated_at']
+
+
+class OrderCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_count']
+
+
+class OrderCompletedCountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['completed_order_count']
