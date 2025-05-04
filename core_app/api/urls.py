@@ -3,7 +3,7 @@ from rest_framework import routers
 
 
 from core_app.api.views import OrderViewSet, OfferViewSet, ReviewViewSet, \
-    OrderCountView, OrderCompletedCountView, BaseInfoView, ProfileDetailView, \
+    OrderCountView, CompletedOrderCountView, BaseInfoView, ProfileView, \
     OfferDetailViewSet, ProfileCustomerListView, ProfileBusinessListView
 
 
@@ -15,15 +15,15 @@ router.register(r'reviews', ReviewViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('completed-order-count/<business_user_id>/',
-         OrderCompletedCountView.as_view(), name='order-completed-count'),
-    path('order-count/<business_user_id>/',
-         OrderCountView.as_view(), name='order-count'),
-    path("base-info/", BaseInfoView.as_view(), name="base-info"),
-    path("profile/<int:pk>/", ProfileDetailView.as_view(), name="profile-detail"),
+    path("profile/<int:pk>/", ProfileView.as_view(), name="profile-detail"),
     path("profiles/customer/", ProfileCustomerListView.as_view(),
          name="profile-customer"),
     path("profiles/business/", ProfileBusinessListView.as_view(),
          name="profile-business"),
+    path('completed-order-count/<int:business_user_id>/',
+         CompletedOrderCountView.as_view(), name='order-completed-count'),
+    path('order-count/<int:business_user_id>/',
+         OrderCountView.as_view(), name='order-count'),
+    path("base-info/", BaseInfoView.as_view(), name="base-info"),
 
 ]

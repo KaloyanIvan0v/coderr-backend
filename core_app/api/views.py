@@ -10,9 +10,9 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
-from .serializers import ProfileDetailSerializer, OfferSerializer, \
+from .serializers import ProfileSerializer, OfferSerializer, \
     OfferDetailSerializer, OfferFeaturesSerializer, OfferListSerializer, \
-    OrderSerializer, OrderCountSerializer, OrderCompletedCountSerializer, \
+    OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer, \
     ProfileTypeListSerializer, ReviewSerializer
 from user_auth_app.models import UserProfile
 
@@ -21,18 +21,27 @@ class OfferPageViewPagination(PageNumberPagination):
     page_size = 6
 
 
-class ProfileDetailView(RetrieveAPIView):
+class ProfileView(RetrieveAPIView):
     queryset = UserProfile.objects.all()
-    serializer_class = ProfileDetailSerializer
+    serializer_class = ProfileSerializer
 
     def get_object(self):
         user_id = self.kwargs.get('pk')
         new_user = get_object_or_404(UserProfile, user__id=user_id)
         return new_user
 
+    def patch(self, request, pk):
+        user_profile = self.get_object()
 
-class ProfileUpdateView(UpdateAPIView):
-    pass
+        # Erstellen eines Serializers mit den vorhandenen Daten und den Änderungen
+        serializer = self.get_serializer(
+            user_profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=400)
 
 
 class ProfileBusinessListView(ListAPIView):
@@ -87,38 +96,26 @@ class OrderCountView(APIView):
     queryset = Order.objects.none()
     serializer_class = OrderCountSerializer
 
-    def get(self, request):
-        user = self.request.user
-
-        try:
-            user_profile = user.main_user
-        except:
-            return Response({"order_count": 0})
-
+    def get(self, request, business_user_id):
+        user_profile = get_object_or_404(
+            UserProfile, user__id=business_user_id)
         order_count = Order.objects.filter(
-            Q(customer_user=user_profile) |
-            Q(business_user=user_profile),
+            business_user=user_profile,
             status="in_progress"
         ).count()
 
         return Response({"order_count": order_count})
 
 
-class OrderCompletedCountView(APIView):
+class CompletedOrderCountView(APIView):
     queryset = Order.objects.all()
-    serializer_class = OrderCompletedCountSerializer
+    serializer_class = CompletedOrderCountSerializer
 
-    def get(self, request):
-        user = self.request.user
-
-        try:
-            user_profile = user.main_user
-        except:
-            return Response({"order_count": 0})
-
+    def get(self, request, business_user_id):
+        user = get_object_or_404(User, id=business_user_id)
+        user_profile = get_object_or_404(UserProfile, user=user)
         order_count = Order.objects.filter(
-            Q(customer_user=user_profile) |
-            Q(business_user=user_profile),
+            business_user=user_profile,
             status="completed"
         ).count()
 
