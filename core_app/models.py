@@ -59,7 +59,7 @@ class Order(models.Model):
         return self.title
 
 
-class Rating(models.Model):
+class Review(models.Model):
     business_user = models.ForeignKey(
         UserProfile, related_name='received_ratings', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(

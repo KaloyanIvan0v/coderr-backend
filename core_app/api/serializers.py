@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from user_auth_app.models import UserProfile
-from core_app.models import Offer, OfferDetails, OfferFeatures, Order
+from core_app.models import Offer, OfferDetails, OfferFeatures, \
+    Review, Order
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
@@ -12,8 +13,22 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'user_type', 'first_name', 'last_name', 'profile_image',
+        fields = ['id', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
                   'location', 'tel', 'description', 'working_hours', 'created_at']
+
+
+class ProfileTypeListSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    first_name = serializers.CharField(
+        source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all())
+
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'username',  'first_name', 'last_name', 'file',
+                  'location', 'tel', 'description', 'working_hours', 'type']
 
 
 class OfferFeaturesSerializer(serializers.ModelSerializer):
@@ -179,3 +194,10 @@ class OrderCompletedCountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['completed_order_count']
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'business_user', 'reviewer', 'rating', 'description',
+                  'created_at', 'updated_at']

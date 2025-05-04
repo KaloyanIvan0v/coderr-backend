@@ -9,10 +9,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
-from core_app.models import Offer, Order, Rating, OfferDetails, OfferFeatures
+from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
 from .serializers import ProfileDetailSerializer, OfferSerializer, \
     OfferDetailSerializer, OfferFeaturesSerializer, OfferListSerializer, \
-    OrderSerializer, OrderCountSerializer, OrderCompletedCountSerializer
+    OrderSerializer, OrderCountSerializer, OrderCompletedCountSerializer, \
+    ProfileTypeListSerializer, ReviewSerializer
 from user_auth_app.models import UserProfile
 
 
@@ -35,11 +36,13 @@ class ProfileUpdateView(UpdateAPIView):
 
 
 class ProfileBusinessListView(ListAPIView):
-    pass
+    queryset = UserProfile.objects.filter(type="business")
+    serializer_class = ProfileTypeListSerializer
 
 
 class ProfileCustomerListView(ListAPIView):
-    pass
+    queryset = UserProfile.objects.filter(type="customer")
+    serializer_class = ProfileTypeListSerializer
 
 
 class OfferViewSet(viewsets.ModelViewSet):
@@ -92,17 +95,16 @@ class OrderCountView(APIView):
         except:
             return Response({"order_count": 0})
 
-        # Filter for in-progress orders where the user is either customer or business
         order_count = Order.objects.filter(
             Q(customer_user=user_profile) |
             Q(business_user=user_profile),
-            status="in_progress"  # Nur Orders mit Status "in_progress"
-        ).count()  # Zählt die Anzahl statt die Orders zurückzugeben
+            status="in_progress"
+        ).count()
 
         return Response({"order_count": order_count})
 
 
-class OrderCompletedCount(APIView):
+class OrderCompletedCountView(APIView):
     queryset = Order.objects.all()
     serializer_class = OrderCompletedCountSerializer
 
@@ -114,18 +116,18 @@ class OrderCompletedCount(APIView):
         except:
             return Response({"order_count": 0})
 
-        # Filter for completed orders where the user is either customer or business
         order_count = Order.objects.filter(
             Q(customer_user=user_profile) |
             Q(business_user=user_profile),
-            status="completed"  # Nur Orders mit Status "completed"
-        ).count()  # Zählt die Anzahl statt die Orders zurückzugeben
+            status="completed"
+        ).count()
 
         return Response({"order_count": order_count})
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Rating.objects.all()
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
 
 class BaseInfoView(APIView):
