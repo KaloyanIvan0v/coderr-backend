@@ -10,10 +10,12 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(
         source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all())
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
+        fields = ['user', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
                   'location', 'tel', 'description', 'working_hours', 'created_at']
 
 
