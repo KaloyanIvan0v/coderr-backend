@@ -4,6 +4,7 @@ from user_auth_app.models import UserProfile
 from user_auth_app.api.serializers import RegistrationSerializer, LogInSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 
 
 class RegistrationView(APIView):
@@ -21,9 +22,10 @@ class RegistrationView(APIView):
                 'email': saved_account.email,
                 'user_id': saved_account.id
             }
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             data = serializer.errors
-        return Response(data)
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogInView(APIView):

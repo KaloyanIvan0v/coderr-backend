@@ -9,8 +9,9 @@ from core_app.api.views import OrderViewSet, OfferViewSet, ReviewViewSet, \
 
 router = routers.DefaultRouter()
 router.register(r'orders', OrderViewSet)
-router.register(r'offers', OfferViewSet)
-router.register(r'offerdetails', OfferDetailViewSet)
+router.register(r'offers', OfferViewSet, basename='offers')
+router.register(r'offerdetails', OfferDetailViewSet,
+                basename='offerdetails')
 router.register(r'reviews', ReviewViewSet)
 
 urlpatterns = [
