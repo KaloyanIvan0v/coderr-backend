@@ -54,7 +54,6 @@ GRAPHIC_DESIGN_OFFER_DATA_CREATE = {
     "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
     "min_price": 100.00,
     "min_delivery_time": 5,
-
 }
 
 

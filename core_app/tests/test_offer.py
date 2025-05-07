@@ -52,3 +52,35 @@ class OfferViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['title'], "Multipaket")
+
+    def test_get_offer(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], "Multipaket")
+
+    def test_patch_offer(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.patch(
+            url, {'title': 'Updated Offer'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Updated Offer')
+
+    def test_delete_offer(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Offer.objects.count(), 0)
+
+    def test_get_offerdetails(self):
+        self.client.force_authenticate(user=self.user)
+        detail = self.offer.details.first()
+        self.assertIsNotNone(detail, "Es wurde kein OfferDetail gefunden.")
+        url = reverse('offerdetails-detail', kwargs={'pk': detail.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # self.assertEqual(response.data['features'][0], "Logo Design")
+        # self.assertEqual(response.data['features'][1], "Visitenkarte")
