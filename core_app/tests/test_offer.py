@@ -82,5 +82,3 @@ class OfferViewTests(APITestCase):
         url = reverse('offerdetails-detail', kwargs={'pk': detail.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(response.data['features'][0], "Logo Design")
-        # self.assertEqual(response.data['features'][1], "Visitenkarte")

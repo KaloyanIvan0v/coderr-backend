@@ -59,6 +59,15 @@ class Order(models.Model):
         return self.title
 
 
+class OrderFeatures(models.Model):
+    order = models.ForeignKey(
+        Order, related_name='features', on_delete=models.CASCADE)
+    feature = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.feature
+
+
 class Review(models.Model):
     business_user = models.ForeignKey(
         UserProfile, related_name='received_ratings', on_delete=models.CASCADE)

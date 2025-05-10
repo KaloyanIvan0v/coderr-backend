@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from user_auth_app.models import UserProfile
 from core_app.models import Offer, OfferDetails, OfferFeatures, \
-    Review, Order
+    Review, Order, OrderFeatures
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -205,11 +205,20 @@ class OfferSerializer(serializers.ModelSerializer):
         return instance
 
 
+class OrderFeaturesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderFeatures
+        fields = ['feature']
+
+
 class OrderSerializer(serializers.ModelSerializer):
+    features = OrderFeaturesSerializer(many=True)
+
     class Meta:
         model = Order
-        fields = ['id', 'offer', 'customer_user', 'business_user',
-                  'status', 'created_at', 'updated_at']
+        fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
+                  'delivery_time_in_days', 'price', 'offer_type', 'status',
+                  'created_at', 'updated_at', 'features']
 
 
 class OrderCountSerializer(serializers.ModelSerializer):
