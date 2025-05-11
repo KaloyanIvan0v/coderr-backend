@@ -210,6 +210,14 @@ class OrderFeaturesSerializer(serializers.ModelSerializer):
         model = OrderFeatures
         fields = ['feature']
 
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            return {'feature': data}
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        return instance.feature
+
 
 class OrderSerializer(serializers.ModelSerializer):
     features = OrderFeaturesSerializer(many=True)
@@ -219,6 +227,15 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
                   'delivery_time_in_days', 'price', 'offer_type', 'status',
                   'created_at', 'updated_at', 'features']
+
+    def create(self, validated_data):
+        features_data = validated_data.pop('features', [])
+        order = Order.objects.create(**validated_data)
+
+        for feature_data in features_data:
+            OrderFeatures.objects.create(order=order, **feature_data)
+
+        return order
 
 
 class OrderCountSerializer(serializers.ModelSerializer):

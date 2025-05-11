@@ -5,7 +5,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
@@ -78,12 +78,22 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.none()
     serializer_class = OrderSerializer
 
+    def get_permissions(self):
+        if self.action == 'destroy':
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
     def get_queryset(self):
         user = self.request.user
 
+        if user.is_staff or user.is_superuser:
+            return Order.objects.all().order_by('-created_at')
+
         try:
             user_profile = user.main_user
-        except:
+        except AttributeError:
             return Order.objects.none()
 
         return Order.objects.filter(

@@ -8,7 +8,7 @@ from core_app.api.views import OrderViewSet, OfferViewSet, ReviewViewSet, \
 
 
 router = routers.DefaultRouter()
-router.register(r'orders', OrderViewSet)
+router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'offers', OfferViewSet, basename='offers')
 router.register(r'offerdetails', OfferDetailViewSet,
                 basename='offerdetails')

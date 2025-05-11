@@ -60,6 +60,7 @@ class ProfileViewTests(APITestCase):
         self.assertEqual(user_profile.location, 'Berlin')
 
     def test_get_profile(self):
+        self.client.force_authenticate(user=self.user)
         url = reverse('profile-detail', kwargs={'pk': self.user.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
