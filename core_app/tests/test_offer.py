@@ -33,6 +33,14 @@ class OfferViewTests(APITestCase):
                 OfferFeatures.objects.create(
                     offer_detail=detail, feature=feature)
 
+    def test_get_offers(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], "Multipaket")
+
     def test_create_offer(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('offers-list')
@@ -44,14 +52,6 @@ class OfferViewTests(APITestCase):
         new_offer = Offer.objects.latest('created_at')
         self.assertEqual(new_offer.description,
                          "Ein umfassendes Grafikdesign-Paket für Unternehmen.")
-
-    def test_get_offers(self):
-        self.client.force_authenticate(user=self.user)
-        url = reverse('offers-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], "Multipaket")
 
     def test_get_offer(self):
         self.client.force_authenticate(user=self.user)

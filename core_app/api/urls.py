@@ -22,7 +22,7 @@ urlpatterns = [
     path("profiles/business/", ProfileBusinessListView.as_view(),
          name="profile-business-list"),
     path('completed-order-count/<int:business_user_id>/',
-         CompletedOrderCountView.as_view(), name='order-completed-count'),
+         CompletedOrderCountView.as_view(), name='completed-order-count'),
     path('order-count/<int:business_user_id>/',
          OrderCountView.as_view(), name='order-count'),
     path("base-info/", BaseInfoView.as_view(), name="base-info"),

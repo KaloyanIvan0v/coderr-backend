@@ -35,6 +35,14 @@ class AuthViewTests(APITestCase):
         self.assertIn('email', response.data)
         self.assertIn('user_id', response.data)
 
+    def test_invalid_login_user(self):
+        url = reverse('login')
+        data = {
+            "username": "exampleUsername8"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_login_user(self):
 
         url = reverse('login')
@@ -47,3 +55,4 @@ class AuthViewTests(APITestCase):
         self.assertIn('token', response.data)
         self.assertIn('username', response.data)
         self.assertIn('email', response.data)
+        self.assertIn('user_id', response.data)

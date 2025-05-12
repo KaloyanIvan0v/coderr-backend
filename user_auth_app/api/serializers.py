@@ -62,10 +62,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LogInSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()
+    username = serializers.CharField(required=True)
     password = serializers.CharField(
         style={'input_type': 'password'},
-        trim_whitespace=False
+        trim_whitespace=False, required=True
     )
 
     class Meta:
@@ -76,6 +76,7 @@ class LogInSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
+        print("LogInSerializer validate called with:", attrs)
         username = attrs.get('username')
         password = attrs.get('password')
 
