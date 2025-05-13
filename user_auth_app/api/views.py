@@ -1,10 +1,47 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from user_auth_app.models import UserProfile
-from user_auth_app.api.serializers import RegistrationSerializer, LogInSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
+from rest_framework.generics import RetrieveAPIView, ListAPIView
+
+from user_auth_app.models import UserProfile
+from user_auth_app.api.serializers import RegistrationSerializer, LogInSerializer
+from .serializers import ProfileSerializer, ProfileTypeListSerializer
+
+
+class ProfileView(RetrieveAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        new_user = get_object_or_404(UserProfile, user__id=user_id)
+        return new_user
+
+    def patch(self, request, pk):
+        user_profile = self.get_object()
+
+        serializer = self.get_serializer(
+            user_profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=400)
+
+
+class ProfileBusinessListView(ListAPIView):
+    queryset = UserProfile.objects.filter(type="business")
+    serializer_class = ProfileTypeListSerializer
+
+
+class ProfileCustomerListView(ListAPIView):
+    queryset = UserProfile.objects.filter(type="customer")
+    serializer_class = ProfileTypeListSerializer
 
 
 class RegistrationView(APIView):

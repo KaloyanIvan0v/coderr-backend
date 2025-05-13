@@ -39,6 +39,23 @@ class ProfileViewTests(APITestCase):
             type='business'
         )
 
+    def test_profile_get_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('profile-detail', kwargs={'pk': self.user.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_profile_get_unauthenticated(self):
+        url = reverse('profile-detail', kwargs={'pk': self.user.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_profile_get_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('profile-detail', kwargs={'pk': 99})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_patch_profile(self):
         self.client.force_authenticate(user=self.user)
 
@@ -59,11 +76,8 @@ class ProfileViewTests(APITestCase):
         self.assertEqual(self.user.last_name, 'User')
         self.assertEqual(user_profile.location, 'Berlin')
 
-    def test_get_profile(self):
-        self.client.force_authenticate(user=self.user)
-        url = reverse('profile-detail', kwargs={'pk': self.user.id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_patch_profile_unauthenticated(self):
+        pass
 
     def test_get_profiles_business_user(self):
         self.client.force_authenticate(user=self.user)

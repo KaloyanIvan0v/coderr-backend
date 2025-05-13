@@ -3,55 +3,21 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
 from rest_framework import viewsets
-from rest_framework.generics import UpdateAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
-from .serializers import ProfileSerializer, OfferSerializer, \
+from .serializers import OfferSerializer, \
     OfferDetailSerializer, OfferFeaturesSerializer, OfferListSerializer, \
     OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer, \
-    ProfileTypeListSerializer, ReviewSerializer
+    ReviewSerializer
 from user_auth_app.models import UserProfile
 
 
 class OfferPageViewPagination(PageNumberPagination):
     page_size = 6
-
-
-class ProfileView(RetrieveAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = ProfileSerializer
-
-    def get_object(self):
-        user_id = self.kwargs.get('pk')
-        new_user = get_object_or_404(UserProfile, user__id=user_id)
-        return new_user
-
-    def patch(self, request, pk):
-        user_profile = self.get_object()
-
-        # Erstellen eines Serializers mit den vorhandenen Daten und den Änderungen
-        serializer = self.get_serializer(
-            user_profile, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(serializer.errors, status=400)
-
-
-class ProfileBusinessListView(ListAPIView):
-    queryset = UserProfile.objects.filter(type="business")
-    serializer_class = ProfileTypeListSerializer
-
-
-class ProfileCustomerListView(ListAPIView):
-    queryset = UserProfile.objects.filter(type="customer")
-    serializer_class = ProfileTypeListSerializer
 
 
 class OfferViewSet(viewsets.ModelViewSet):

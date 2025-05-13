@@ -4,61 +4,6 @@ from core_app.models import Offer, OfferDetails, OfferFeatures, \
     Review, Order, OrderFeatures
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', required=False)
-    first_name = serializers.CharField(
-        source='user.first_name', required=False)
-    last_name = serializers.CharField(source='user.last_name', required=False)
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all(), required=False)
-
-    class Meta:
-        model = UserProfile
-        fields = ['user', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
-                  'location', 'tel', 'description', 'working_hours', 'created_at']
-        read_only_fields = ['created_at']
-
-    def update(self, instance, validated_data):
-
-        user_data = {}
-
-        if 'user' in validated_data and isinstance(validated_data['user'], UserProfile):
-            user_data['user'] = validated_data.pop('user')
-
-        if 'user' in validated_data and isinstance(validated_data['user'], dict):
-            user_data.update(validated_data.pop('user'))
-
-        user = instance.user
-        if 'first_name' in user_data:
-            user.first_name = user_data['first_name']
-        if 'last_name' in user_data:
-            user.last_name = user_data['last_name']
-        if 'email' in user_data:
-            user.email = user_data['email']
-        user.save()
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
-
-
-class ProfileTypeListSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    first_name = serializers.CharField(
-        source='user.first_name', read_only=True)
-    last_name = serializers.CharField(source='user.last_name', read_only=True)
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all())
-
-    class Meta:
-        model = UserProfile
-        fields = ['user', 'username',  'first_name', 'last_name', 'file',
-                  'location', 'tel', 'description', 'working_hours', 'type']
-
-
 class OfferFeaturesSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferFeatures
