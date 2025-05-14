@@ -6,6 +6,8 @@ from rest_framework import status
 
 from core_app.models import UserProfile
 
+from .test_data.user_data import UPDATE_USER_DATA
+
 
 class ProfileViewTests(APITestCase):
 
@@ -58,16 +60,9 @@ class ProfileViewTests(APITestCase):
 
     def test_patch_profile(self):
         self.client.force_authenticate(user=self.user)
-
         url = reverse('profile-detail', kwargs={'pk': self.user.id})
-        update_data = {
-            'first_name': 'Updated',
-            'last_name': 'User',
-            'location': 'Berlin',
-            'tel': '123456789',
-            'description': 'Test description'
-        }
-        response = self.client.patch(url, update_data, format='json')
+        update_user_data = UPDATE_USER_DATA
+        response = self.client.patch(url, update_user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.user.refresh_from_db()
@@ -77,7 +72,23 @@ class ProfileViewTests(APITestCase):
         self.assertEqual(user_profile.location, 'Berlin')
 
     def test_patch_profile_unauthenticated(self):
-        pass
+        url = reverse('profile-detail', kwargs={'pk': self.user.id})
+        response = self.client.patch(url, UPDATE_USER_DATA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_patch_profile_forbidden(self):
+        other_user = User.objects.create_user(
+            username='otheruser', password='testpass')
+        self.client.force_authenticate(user=other_user)
+        url = reverse('profile-detail', kwargs={'pk': self.user.id})
+        response = self.client.patch(url, UPDATE_USER_DATA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_patch_profile_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('profile-detail', kwargs={'pk': 999999})
+        response = self.client.patch(url, UPDATE_USER_DATA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_profiles_business_user(self):
         self.client.force_authenticate(user=self.user)

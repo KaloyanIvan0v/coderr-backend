@@ -24,6 +24,10 @@ class ProfileView(RetrieveAPIView):
     def patch(self, request, pk):
         user_profile = self.get_object()
 
+        if request.user.id != user_profile.user.id:
+            return Response({"detail": "Sie sind nicht berechtigt, dieses Profil zu bearbeiten."},
+                            status=status.HTTP_403_FORBIDDEN)
+
         serializer = self.get_serializer(
             user_profile, data=request.data, partial=True)
 
