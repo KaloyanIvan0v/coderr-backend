@@ -99,6 +99,11 @@ class ProfileViewTests(APITestCase):
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[1]['user'], self.user_business_2.id)
 
+    def test_get_profiles_business_user_unauthenticated(self):
+        url = reverse('profile-business-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_get_profiles_customer_user(self):
         self.client.force_authenticate(user=self.user)
 
@@ -107,3 +112,8 @@ class ProfileViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['user'], self.user.id)
+
+    def test_get_profiles_customer_user_unauthenticated(self):
+        url = reverse('profile-customer-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

@@ -1,12 +1,15 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets
+
+from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
 from .serializers import OfferSerializer, \
@@ -14,6 +17,7 @@ from .serializers import OfferSerializer, \
     OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer, \
     ReviewSerializer
 from user_auth_app.models import UserProfile
+from .filters import OfferFilter
 
 
 class OfferPageViewPagination(PageNumberPagination):
@@ -23,6 +27,11 @@ class OfferPageViewPagination(PageNumberPagination):
 class OfferViewSet(viewsets.ModelViewSet):
     queryset = Offer.objects.all().order_by('-created_at')
     pagination_class = OfferPageViewPagination
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = OfferFilter
+    search_fields = ['title', 'description']
+    ordering_fields = ['updated_at', 'min_price']
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

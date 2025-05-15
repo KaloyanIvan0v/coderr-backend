@@ -41,6 +41,13 @@ class OfferViewTests(APITestCase):
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['title'], "Multipaket")
 
+    def test_get_offers_bad_request(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-list') + '?min_price=abc'
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_create_offer(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('offers-list')
