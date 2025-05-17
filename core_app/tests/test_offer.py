@@ -16,12 +16,21 @@ class OfferViewTests(APITestCase):
             email="test@example.com",
             password="password123"
         )
-        self.profile = UserProfile.objects.create(
+        self.customer_profile = UserProfile.objects.create(
             user=self.user,
             type='customer'
         )
+        self.business_user = User.objects.create_user(
+            username="business_testuser",
+            email="business@example.com",
+            password="password123"
+        )
+        self.business_profile = UserProfile.objects.create(
+            user=self.business_user,
+            type='business'
+        )
         offer_data = GRAPHIC_DESIGN_OFFER_DATA_CREATE.copy()
-        offer_data['user'] = self.profile
+        offer_data['user'] = self.business_profile
         self.offer = Offer.objects.create(**offer_data)
 
         for detail_data in GRAPHIC_DESIGN_OFFER_DATA_CREATE_DETAIL['details']:
@@ -49,16 +58,40 @@ class OfferViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_offer(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-list')
         data = GRAPHIC_DESIGN_OFFER_DATA.copy()
-        data['user'] = self.user.id
+        data['user'] = self.business_user.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Offer.objects.count(), 2)
         new_offer = Offer.objects.latest('created_at')
         self.assertEqual(new_offer.description,
                          "Ein umfassendes Grafikdesign-Paket für Unternehmen.")
+
+    def test_create_offer_invalid_request(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('offers-list')
+        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data['title'] = {"apm", "cham", "da"}
+        data['user'] = self.business_user.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_offer_unauthorized(self):
+        url = reverse('offers-list')
+        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data['user'] = self.user.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_offer_forbidden(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-list')
+        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data['user'] = self.user.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_offer(self):
         self.client.force_authenticate(user=self.user)
@@ -67,6 +100,17 @@ class OfferViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], "Multipaket")
 
+    def test_get_offer_unauthorized(self):
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_offer_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offers-detail', kwargs={'pk': 9999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_patch_offer(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('offers-detail', kwargs={'pk': self.offer.id})
@@ -74,6 +118,13 @@ class OfferViewTests(APITestCase):
             url, {'title': 'Updated Offer'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], 'Updated Offer')
+
+    def test_patch_offer_bad_request(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.patch(
+            url, {'tittttle': 'Updated Offer'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_offer(self):
         self.client.force_authenticate(user=self.user)

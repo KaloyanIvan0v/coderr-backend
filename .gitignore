@@ -29,3 +29,10 @@ venv.bak/
 
 # MacOS
 .DS_Store
+
+#Cursor
+.cursor/
+
+#other
+
+
