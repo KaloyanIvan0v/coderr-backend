@@ -29,8 +29,18 @@ class OfferViewTests(APITestCase):
             user=self.business_user,
             type='business'
         )
+        self.business_user_2 = User.objects.create_user(
+            username="business_testuser_2",
+            email="business2@example.com",
+            password="password123"
+        )
+        self.business_profile_2 = UserProfile.objects.create(
+            user=self.business_user_2,
+            type='business'
+        )
         offer_data = GRAPHIC_DESIGN_OFFER_DATA_CREATE.copy()
         offer_data['user'] = self.business_profile
+
         self.offer = Offer.objects.create(**offer_data)
 
         for detail_data in GRAPHIC_DESIGN_OFFER_DATA_CREATE_DETAIL['details']:
@@ -112,26 +122,63 @@ class OfferViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_patch_offer(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-detail', kwargs={'pk': self.offer.id})
         response = self.client.patch(
             url, {'title': 'Updated Offer'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], 'Updated Offer')
 
-    def test_patch_offer_bad_request(self):
+    def test_patch_offer_unknown_field(self):
         self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-detail', kwargs={'pk': self.offer.id})
         response = self.client.patch(
             url, {'tittttle': 'Updated Offer'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_patch_offer_unauthorized(self):
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.patch(
+            url, {'title': 'Updated Offer'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_patch_offer_forbidden(self):
+        self.client.force_authenticate(user=self.business_user_2)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.patch(
+            url, {'title': 'Updated Offer'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_patch_offer_not_found(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('offers-detail', kwargs={'pk': 9999})
+        response = self.client.patch(
+            url, {'title': 'Updated Offer'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_delete_offer(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-detail', kwargs={'pk': self.offer.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Offer.objects.count(), 0)
+
+    def test_delete_offer_unauthorized(self):
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_offer_forbidden(self):
+        self.client.force_authenticate(user=self.business_user_2)
+        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_offer_not_found(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('offers-detail', kwargs={'pk': 9999})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_offerdetails(self):
         self.client.force_authenticate(user=self.user)
@@ -140,3 +187,14 @@ class OfferViewTests(APITestCase):
         url = reverse('offerdetails-detail', kwargs={'pk': detail.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_offerdetails_unauthorized(self):
+        url = reverse('offerdetails-detail', kwargs={'pk': 9999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_offerdetails_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('offerdetails-detail', kwargs={'pk': 9999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

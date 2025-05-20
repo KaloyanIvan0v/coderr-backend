@@ -49,6 +49,11 @@ class OrderViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Order.objects.count(), 1)
 
+    def test_get_order_list_unauthorized(self):
+        url = reverse('orders-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_create_order(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
@@ -62,6 +67,39 @@ class OrderViewTests(APITestCase):
         self.assertEqual(Order.objects.count(), 2)
         self.assertEqual(Order.objects.last().title, "Logo Design")
         self.assertEqual(Order.objects.last().status, "in_progress")
+
+    def test_create_order_invalid_data(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('orders-list')
+        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data['customer_user'] = self.profile.id
+        data['business_user'] = self.business_profile.id
+        data['title'] = ''
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Order.objects.count(), 1)
+
+    def test_create_order_unauthorized(self):
+        url = reverse('orders-list')
+        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data['customer_user'] = self.profile.id
+        data['business_user'] = self.business_profile.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_order_forbidden(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('orders-list')
+        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data['customer_user'] = self.profile.id
+        data['business_user'] = self.business_profile.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_order_details_unauthorized(self):
+        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_order(self):
         self.client.force_authenticate(user=self.user)

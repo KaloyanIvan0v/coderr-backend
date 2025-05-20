@@ -18,7 +18,7 @@ from .serializers import OfferSerializer, \
     ReviewSerializer
 from user_auth_app.models import UserProfile
 from .filters import OfferFilter
-from .permissions.offer_permissions import IsBusinessUser
+from .permissions.offer_permissions import IsBusinessUser, IsOwner
 
 
 class OfferPageViewPagination(PageNumberPagination):
@@ -37,6 +37,8 @@ class OfferViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [IsAuthenticated(), IsBusinessUser()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsBusinessUser(), IsOwner()]
         return [permission() for permission in self.permission_classes]
 
     def get_serializer_class(self):

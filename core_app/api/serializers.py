@@ -103,6 +103,15 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ['id', 'user', 'title', 'image', 'description',
                   'created_at', 'updated_at', 'details', 'min_price', 'min_delivery_time']
+        extra_kwargs = {'id': {'read_only': True}}
+
+    def validate(self, attrs):
+        unknown_fields = set(self.initial_data.keys()) - \
+            set(self.fields.keys())
+        if unknown_fields:
+            raise serializers.ValidationError(
+                f"Unknown fields: {', '.join(unknown_fields)}")
+        return super().validate(attrs)
 
     def get_user(self, obj):
         return obj.user.id
