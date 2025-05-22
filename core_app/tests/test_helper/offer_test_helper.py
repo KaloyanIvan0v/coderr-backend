@@ -1,4 +1,34 @@
-# immportant: the "image" field must be an file Upload or None
+from core_app.models import Offer, OfferDetails, OfferFeatures
+from django.utils import timezone
+
+
+def create_offer(test_case):
+    return Offer.objects.create(
+        user=test_case.business_profile,
+        title="Test Offer",
+        description="Test Description",
+        created_at=timezone.now(),
+        updated_at=timezone.now(),
+        min_price=100.00,
+        min_delivery_time=5,
+    )
+
+
+def create_offer_detail(offer):
+    offer_detail = OfferDetails.objects.create(
+        id=1,
+        offer=offer,
+        title="Logo Design",
+        revisions=3,
+        delivery_time_in_days=5,
+        price=150,
+        offer_type="basic"
+    )
+    OfferFeatures.objects.create(
+        offer_detail=offer_detail, feature="Logo Design")
+    OfferFeatures.objects.create(
+        offer_detail=offer_detail, feature="Visitenkarten")
+    return offer_detail
 
 
 OFFER_DATA = {

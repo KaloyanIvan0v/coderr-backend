@@ -6,40 +6,24 @@ from rest_framework import status
 
 from core_app.models import UserProfile
 
-from .test_data.user_data import UPDATE_USER_DATA
+from .test_helper.user_test_helper import UPDATE_USER_DATA
+from .test_helper.user_test_helper import create_user, create_user_profile
 
 
 class ProfileViewTests(APITestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='password123'
-        )
-        self.user_business = User.objects.create_user(
-            username='testuser_business',
-            email='test_business@example.com',
-            password='password123'
-        )
-        self.user_business_2 = User.objects.create_user(
-            username='testuser_business_2',
-            email='test_business_2@example.com',
-            password='password123'
-        )
 
-        self.profile = UserProfile.objects.create(
-            user=self.user,
-            type='customer'
-        )
-        self.profile_business = UserProfile.objects.create(
-            user=self.user_business,
-            type='business'
-        )
-        self.profile_business_2 = UserProfile.objects.create(
-            user=self.user_business_2,
-            type='business'
-        )
+        self.user = create_user("tomas_customer")
+        self.profile = create_user_profile(self.user, "customer")
+
+        self.business_user = create_user("markus_business")
+        self.business_profile = create_user_profile(
+            self.business_user, "business")
+
+        self.business_user_2 = create_user("linus_business")
+        self.business_profile_2 = create_user_profile(
+            self.business_user_2, "business")
 
     def test_profile_get_authenticated(self):
         self.client.force_authenticate(user=self.user)
@@ -97,7 +81,7 @@ class ProfileViewTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[1]['user'], self.user_business_2.id)
+        self.assertEqual(response.data[1]['user'], self.business_user_2.id)
 
     def test_get_profiles_business_user_unauthenticated(self):
         url = reverse('profile-business-list')

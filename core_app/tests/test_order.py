@@ -4,44 +4,25 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from core_app.models import Order, UserProfile, OrderFeatures
-from .test_data.order_data import ORDER_DATA
-from .test_data.offer_data import OFFER_DATA
+from core_app.models import Order, UserProfile, OrderFeatures, Offer, OfferDetails, OfferFeatures
+from .test_helper.order_test_helper import ORDER_DATA, create_order
+from .test_helper.offer_test_helper import OFFER_DATA, create_offer, create_offer_detail
+from .test_helper.user_test_helper import create_user, create_user_profile
 
 
 class OrderViewTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="password123"
-        )
-        self.profile = UserProfile.objects.create(
-            user=self.user,
-            type='customer'
-        )
-        self.business_user = User.objects.create_user(
-            username="businessuser",
-            email="business@example.com",
-            password="password123"
-        )
-        self.business_profile = UserProfile.objects.create(
-            user=self.business_user,
-            type='business'
-        )
+        self.user = create_user("tomas_customer")
+        self.profile = create_user_profile(self.user, "customer")
 
-        order_data = ORDER_DATA.copy()
-        features = order_data.pop('features', [])
+        self.business_user = create_user("markus_business")
+        self.business_profile = create_user_profile(
+            self.business_user, "business")
 
-        self.order = Order.objects.create(
-            customer_user=self.profile,
-            business_user=self.business_profile,
-            **order_data)
+        self.offer = create_offer(self)
+        self.offer_detail = create_offer_detail(self.offer)
 
-        for feature in features:
-            OrderFeatures.objects.create(
-                order=self.order,
-                feature=feature)
+        self.order = create_order(self, self.profile, self.business_profile)
 
     def test_get_order_list(self):
         self.client.force_authenticate(user=self.user)
@@ -56,18 +37,20 @@ class OrderViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_order(self):
-        self.client.force_authenticate(user=self.user)
-        url = reverse('orders-list')
 
-        data = ORDER_DATA.copy()
-        data['customer_user'] = self.profile.id
-        data['business_user'] = self.business_profile.id
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('orders-list')
+        data = {
+            "offer_detail_id": 1
+        }
 
         response = self.client.post(url, data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Order.objects.count(), 2)
-        self.assertEqual(Order.objects.last().title, "Logo Design")
-        self.assertEqual(Order.objects.last().status, "in_progress")
+        self.assertEqual(response.data['status'], "in_progress")
+        self.assertIn("Logo Design", response.data['features'])
 
     def test_create_order_invalid_data(self):
         self.client.force_authenticate(user=self.user)
@@ -100,9 +83,9 @@ class OrderViewTests(APITestCase):
     def test_create_order_not_found(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
-        data = ORDER_DATA.copy()
-        data['customer_user'] = self.user.id
-        data['business_user'] = self.business_user.id
+        data = {
+            "offer_detail_id": 999
+        }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

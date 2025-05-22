@@ -196,7 +196,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         try:
             offer_detail = OfferDetails.objects.get(id=offer_detail_id)
-            print(offer_detail)
         except OfferDetails.DoesNotExist:
             raise serializers.ValidationError(
                 "OfferDetail mit dieser ID existiert nicht."

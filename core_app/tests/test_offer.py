@@ -1,43 +1,27 @@
 from django.urls import reverse
-from django.contrib.auth.models import User
 
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from core_app.models import UserProfile, Offer, OfferDetails, OfferFeatures
-from .test_data.offer_data import OFFER_DATA, OFFER_DATA_CREATE, OFFER_DATA_CREATE_DETAIL
-from .test_data.user_data import TEST_USER_DATA
+from core_app.models import Offer, OfferDetails, OfferFeatures
+from .test_helper.offer_test_helper import OFFER_DATA, OFFER_DATA_CREATE, OFFER_DATA_CREATE_DETAIL
+from .test_helper.user_test_helper import create_user, create_user_profile
 
 
 class OfferViewTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="password123"
-        )
-        self.customer_profile = UserProfile.objects.create(
-            user=self.user,
-            type='customer'
-        )
-        self.business_user = User.objects.create_user(
-            username="business_testuser",
-            email="business@example.com",
-            password="password123"
-        )
-        self.business_profile = UserProfile.objects.create(
-            user=self.business_user,
-            type='business'
-        )
-        self.business_user_2 = User.objects.create_user(
-            username="business_testuser_2",
-            email="business2@example.com",
-            password="password123"
-        )
-        self.business_profile_2 = UserProfile.objects.create(
-            user=self.business_user_2,
-            type='business'
-        )
+
+        self.user = create_user("tomas_customer")
+        self.profile = create_user_profile(self.user, "customer")
+
+        self.business_user = create_user("markus_business")
+        self.business_profile = create_user_profile(
+            self.business_user, "business")
+
+        self.business_user_2 = create_user("linus_business")
+        self.business_profile_2 = create_user_profile(
+            self.business_user_2, "business")
+
         offer_data = OFFER_DATA_CREATE.copy()
         offer_data['user'] = self.business_profile
 
@@ -183,7 +167,7 @@ class OfferViewTests(APITestCase):
     def test_get_offerdetails(self):
         self.client.force_authenticate(user=self.user)
         detail = self.offer.details.first()
-        self.assertIsNotNone(detail, "Es wurde kein OfferDetail gefunden.")
+        self.assertIsNotNone(detail, "no detail found")
         url = reverse('offerdetails-detail', kwargs={'pk': detail.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
