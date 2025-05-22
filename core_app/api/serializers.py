@@ -5,6 +5,7 @@ from core_app.models import Offer, OfferDetails, OfferFeatures, \
 from core_app.models import OfferDetails
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from django.utils import timezone
 
 
@@ -188,8 +189,7 @@ class OrderSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at', 'features', 'offer_detail_id']
 
         read_only_fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
-                            'delivery_time_in_days', 'price', 'offer_type',
-                            'status', 'created_at', 'updated_at', 'features']
+                            'delivery_time_in_days', 'price', 'offer_type', 'created_at', 'features']
 
     def create(self, validated_data):
         offer_detail_id = validated_data.pop('offer_detail_id')
@@ -197,8 +197,8 @@ class OrderSerializer(serializers.ModelSerializer):
         try:
             offer_detail = OfferDetails.objects.get(id=offer_detail_id)
         except OfferDetails.DoesNotExist:
-            raise serializers.ValidationError(
-                "OfferDetail mit dieser ID existiert nicht."
+            raise NotFound(
+                f"OfferDetail mit der ID {offer_detail_id} existiert nicht."
             )
 
         customer_user = self.context['request'].user.main_user

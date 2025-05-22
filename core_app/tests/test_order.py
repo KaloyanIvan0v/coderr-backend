@@ -37,16 +37,10 @@ class OrderViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_order(self):
-
         self.client.force_authenticate(user=self.user)
-
         url = reverse('orders-list')
-        data = {
-            "offer_detail_id": 1
-        }
-
+        data = {"offer_detail_id": 1}
         response = self.client.post(url, data, format='json')
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Order.objects.count(), 2)
         self.assertEqual(response.data['status'], "in_progress")
@@ -55,10 +49,7 @@ class OrderViewTests(APITestCase):
     def test_create_order_invalid_data(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
-        data = ORDER_DATA.copy()
-        data['customer_user'] = self.profile.id
-        data['business_user'] = self.business_profile.id
-        data['title'] = ''
+        data = {}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Order.objects.count(), 1)
@@ -74,18 +65,14 @@ class OrderViewTests(APITestCase):
     def test_create_order_forbidden(self):
         self.client.force_authenticate(user=self.business_user)
         url = reverse('orders-list')
-        data = ORDER_DATA.copy()
-        data['customer_user'] = self.profile.id
-        data['business_user'] = self.business_profile.id
+        data = {"offer_detail_id": 1}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_order_not_found(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
-        data = {
-            "offer_detail_id": 999
-        }
+        data = {"offer_detail_id": 999}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -102,7 +89,7 @@ class OrderViewTests(APITestCase):
         }
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Order.objects.last().status, "completed")
+        self.assertEqual(Order.objects.all()[0].status, "completed")
 
     def test_non_superuser_cannot_delete_order(self):
         self.client.force_authenticate(user=self.user)
