@@ -17,6 +17,14 @@ def create_user_profile(user, type):
     )
 
 
+def create_superuser(username):
+    return User.objects.create_superuser(
+        username=username,
+        email=f"{username}@example.com",
+        password="password123"
+    )
+
+
 TEST_USER_DATA = {
     "username": "testuser",
     "email": "test@example.com",

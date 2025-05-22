@@ -67,6 +67,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated, IsAdminUser]
         elif self.action == 'create':
             return [IsAuthenticated(), IsCustomerUser()]
+        elif self.action in ['update', 'partial_update']:
+            return [IsAuthenticated(), IsBusinessUser()]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]

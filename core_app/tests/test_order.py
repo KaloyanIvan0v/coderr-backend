@@ -7,7 +7,7 @@ from rest_framework import status
 from core_app.models import Order, UserProfile, OrderFeatures, Offer, OfferDetails, OfferFeatures
 from .test_helper.order_test_helper import ORDER_DATA, create_order
 from .test_helper.offer_test_helper import OFFER_DATA, create_offer, create_offer_detail
-from .test_helper.user_test_helper import create_user, create_user_profile
+from .test_helper.user_test_helper import create_user, create_user_profile, create_superuser
 
 
 class OrderViewTests(APITestCase):
@@ -18,6 +18,8 @@ class OrderViewTests(APITestCase):
         self.business_user = create_user("markus_business")
         self.business_profile = create_user_profile(
             self.business_user, "business")
+
+        self.superuser = create_superuser("admin")
 
         self.offer = create_offer(self)
         self.offer_detail = create_offer_detail(self.offer)
@@ -82,33 +84,58 @@ class OrderViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_order(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.force_authenticate(user=self.business_user)
         url = reverse('orders-detail', kwargs={'pk': self.order.id})
-        data = {
-            "status": "completed"
-        }
+        data = {"status": "completed"}
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Order.objects.all()[0].status, "completed")
 
-    def test_non_superuser_cannot_delete_order(self):
+    def test_update_order_unauthorized(self):
+        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+        data = {"status": "completed"}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_order_forbidden(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+        data = {"status": "completed"}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_update_order_not_found(self):
+        self.client.force_authenticate(user=self.business_user)
+        url = reverse('orders-detail', kwargs={'pk': 999})
+        data = {"status": "completed"}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_superuser_can_delete_order(self):
+
+        self.client.force_authenticate(user=self.superuser)
+        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_delete_order_unauthorized(self):
+        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_order_forbidden(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-detail', kwargs={'pk': self.order.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Order.objects.count(), 1)
 
-    def test_superuser_can_delete_order(self):
-        superuser = User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='adminpass'
-        )
-        self.client.force_authenticate(user=superuser)
-        url = reverse('orders-detail', kwargs={'pk': self.order.id})
+    def test_delete_order_not_found(self):
+        self.client.force_authenticate(user=self.superuser)
+        url = reverse('orders-detail', kwargs={'pk': 999})
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_order_count(self):
         self.client.force_authenticate(user=self.user)
@@ -118,6 +145,19 @@ class OrderViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['order_count'], 1)
 
+    def test_order_count_unauthorized(self):
+        url = reverse(
+            'order-count', kwargs={'business_user_id': self.business_user.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_order_count_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse(
+            'order-count', kwargs={'business_user_id': 999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_completed_order_count(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('completed-order-count',
@@ -125,3 +165,16 @@ class OrderViewTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['order_count'], 0)
+
+    def test_completed_order_count_unauthorized(self):
+        url = reverse(
+            'completed-order-count', kwargs={'business_user_id': self.business_user.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_completed_order_count_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse(
+            'completed-order-count', kwargs={'business_user_id': 999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
