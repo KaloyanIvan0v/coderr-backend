@@ -5,7 +5,8 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from core_app.models import Order, UserProfile, OrderFeatures
-from .test_data.order_data import LOGO_DESIGN_ORDER_DATA
+from .test_data.order_data import ORDER_DATA
+from .test_data.offer_data import OFFER_DATA
 
 
 class OrderViewTests(APITestCase):
@@ -29,7 +30,7 @@ class OrderViewTests(APITestCase):
             type='business'
         )
 
-        order_data = LOGO_DESIGN_ORDER_DATA.copy()
+        order_data = ORDER_DATA.copy()
         features = order_data.pop('features', [])
 
         self.order = Order.objects.create(
@@ -58,7 +59,7 @@ class OrderViewTests(APITestCase):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
 
-        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data = ORDER_DATA.copy()
         data['customer_user'] = self.profile.id
         data['business_user'] = self.business_profile.id
 
@@ -71,7 +72,7 @@ class OrderViewTests(APITestCase):
     def test_create_order_invalid_data(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('orders-list')
-        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data = ORDER_DATA.copy()
         data['customer_user'] = self.profile.id
         data['business_user'] = self.business_profile.id
         data['title'] = ''
@@ -81,7 +82,7 @@ class OrderViewTests(APITestCase):
 
     def test_create_order_unauthorized(self):
         url = reverse('orders-list')
-        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data = ORDER_DATA.copy()
         data['customer_user'] = self.profile.id
         data['business_user'] = self.business_profile.id
         response = self.client.post(url, data, format='json')
@@ -90,11 +91,20 @@ class OrderViewTests(APITestCase):
     def test_create_order_forbidden(self):
         self.client.force_authenticate(user=self.business_user)
         url = reverse('orders-list')
-        data = LOGO_DESIGN_ORDER_DATA.copy()
+        data = ORDER_DATA.copy()
         data['customer_user'] = self.profile.id
         data['business_user'] = self.business_profile.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_order_not_found(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('orders-list')
+        data = ORDER_DATA.copy()
+        data['customer_user'] = self.user.id
+        data['business_user'] = self.business_user.id
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_order_details_unauthorized(self):
         url = reverse('orders-detail', kwargs={'pk': self.order.id})

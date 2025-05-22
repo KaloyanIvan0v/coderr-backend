@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
@@ -18,7 +19,7 @@ from .serializers import OfferSerializer, \
     ReviewSerializer
 from user_auth_app.models import UserProfile
 from .filters import OfferFilter
-from .permissions.offer_permissions import IsBusinessUser, IsOwner
+from .permissions.offer_permissions import IsBusinessUser, IsOwner, IsCustomerUser
 
 
 class OfferPageViewPagination(PageNumberPagination):
@@ -64,6 +65,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'destroy':
             permission_classes = [IsAuthenticated, IsAdminUser]
+        elif self.action == 'create':
+            return [IsAuthenticated(), IsCustomerUser()]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -83,6 +86,14 @@ class OrderViewSet(viewsets.ModelViewSet):
             Q(customer_user=user_profile) |
             Q(business_user=user_profile)
         ).order_by('-created_at')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={
+                                         'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class OrderCountView(APIView):

@@ -1,4 +1,4 @@
-LOGO_DESIGN_ORDER_DATA = {
+ORDER_DATA = {
     "id": 1,
     "title": "Logo Design",
     "revisions": 3,

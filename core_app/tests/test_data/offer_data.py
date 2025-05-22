@@ -1,7 +1,7 @@
 # immportant: the "image" field must be an file Upload or None
 
 
-GRAPHIC_DESIGN_OFFER_DATA = {
+OFFER_DATA = {
     "title": "Multipaket",
     "image": None,
     "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
@@ -48,7 +48,7 @@ GRAPHIC_DESIGN_OFFER_DATA = {
 }
 
 
-GRAPHIC_DESIGN_OFFER_DATA_CREATE = {
+OFFER_DATA_CREATE = {
     "title": "Multipaket",
     "image": None,
     "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
@@ -57,7 +57,7 @@ GRAPHIC_DESIGN_OFFER_DATA_CREATE = {
 }
 
 
-GRAPHIC_DESIGN_OFFER_DATA_CREATE_DETAIL = {
+OFFER_DATA_CREATE_DETAIL = {
     "details": [
         {
             "title": "Basic Design",

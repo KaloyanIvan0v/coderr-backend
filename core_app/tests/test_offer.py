@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from core_app.models import UserProfile, Offer, OfferDetails, OfferFeatures
-from .test_data.offer_data import GRAPHIC_DESIGN_OFFER_DATA, GRAPHIC_DESIGN_OFFER_DATA_CREATE, GRAPHIC_DESIGN_OFFER_DATA_CREATE_DETAIL
+from .test_data.offer_data import OFFER_DATA, OFFER_DATA_CREATE, OFFER_DATA_CREATE_DETAIL
 from .test_data.user_data import TEST_USER_DATA
 
 
@@ -38,12 +38,12 @@ class OfferViewTests(APITestCase):
             user=self.business_user_2,
             type='business'
         )
-        offer_data = GRAPHIC_DESIGN_OFFER_DATA_CREATE.copy()
+        offer_data = OFFER_DATA_CREATE.copy()
         offer_data['user'] = self.business_profile
 
         self.offer = Offer.objects.create(**offer_data)
 
-        for detail_data in GRAPHIC_DESIGN_OFFER_DATA_CREATE_DETAIL['details']:
+        for detail_data in OFFER_DATA_CREATE_DETAIL['details']:
             features = detail_data.pop('features', [])
             detail = OfferDetails.objects.create(
                 offer=self.offer, **detail_data)
@@ -70,7 +70,7 @@ class OfferViewTests(APITestCase):
     def test_create_offer(self):
         self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-list')
-        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data = OFFER_DATA.copy()
         data['user'] = self.business_user.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -82,7 +82,7 @@ class OfferViewTests(APITestCase):
     def test_create_offer_invalid_request(self):
         self.client.force_authenticate(user=self.business_user)
         url = reverse('offers-list')
-        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data = OFFER_DATA.copy()
         data['title'] = {"apm", "cham", "da"}
         data['user'] = self.business_user.id
         response = self.client.post(url, data, format='json')
@@ -90,7 +90,7 @@ class OfferViewTests(APITestCase):
 
     def test_create_offer_unauthorized(self):
         url = reverse('offers-list')
-        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data = OFFER_DATA.copy()
         data['user'] = self.user.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -98,7 +98,7 @@ class OfferViewTests(APITestCase):
     def test_create_offer_forbidden(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('offers-list')
-        data = GRAPHIC_DESIGN_OFFER_DATA.copy()
+        data = OFFER_DATA.copy()
         data['user'] = self.user.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

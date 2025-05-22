@@ -2,6 +2,10 @@ from rest_framework import serializers
 from user_auth_app.models import UserProfile
 from core_app.models import Offer, OfferDetails, OfferFeatures, \
     Review, Order, OrderFeatures
+from core_app.models import OfferDetails
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
 
 
 class OfferFeaturesSerializer(serializers.ModelSerializer):
@@ -53,9 +57,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             'offer_type', instance.offer_type)
         instance.save()
 
-        # Handle features
         if features_data:
-            # Optional: remove existing features not included in the update
+
             instance.features.all().delete()
 
             for feature_data in features_data:
@@ -174,20 +177,51 @@ class OrderFeaturesSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    features = OrderFeaturesSerializer(many=True)
+    offer_detail_id = serializers.IntegerField(
+        write_only=True)
+    features = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Order
         fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
                   'delivery_time_in_days', 'price', 'offer_type', 'status',
-                  'created_at', 'updated_at', 'features']
+                  'created_at', 'updated_at', 'features', 'offer_detail_id']
+
+        read_only_fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
+                            'delivery_time_in_days', 'price', 'offer_type',
+                            'status', 'created_at', 'updated_at', 'features']
 
     def create(self, validated_data):
-        features_data = validated_data.pop('features', [])
-        order = Order.objects.create(**validated_data)
+        offer_detail_id = validated_data.pop('offer_detail_id')
 
-        for feature_data in features_data:
-            OrderFeatures.objects.create(order=order, **feature_data)
+        try:
+            offer_detail = OfferDetails.objects.get(id=offer_detail_id)
+            print(offer_detail)
+        except OfferDetails.DoesNotExist:
+            raise serializers.ValidationError(
+                "OfferDetail mit dieser ID existiert nicht."
+            )
+
+        customer_user = self.context['request'].user.main_user
+        order = Order.objects.create(
+            customer_user=customer_user,
+            business_user=offer_detail.offer.user,
+            title=offer_detail.title,
+            revisions=offer_detail.revisions,
+            delivery_time_in_days=offer_detail.delivery_time_in_days,
+            price=offer_detail.price,
+            offer_type=offer_detail.offer_type,
+            status='in_progress',
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+        )
+
+        if hasattr(offer_detail, 'features'):
+            for feature in offer_detail.features.all():
+                OrderFeatures.objects.create(
+                    order=order,
+                    feature=feature.feature
+                )
 
         return order
 
