@@ -19,7 +19,7 @@ from .serializers import OfferSerializer, \
     ReviewSerializer
 from user_auth_app.models import UserProfile
 from .filters import OfferFilter
-from .permissions.offer_permissions import IsBusinessUser, IsOwner, IsCustomerUser
+from .permissions.main_permissions import IsBusinessUser, IsOwner, IsCustomerUser
 
 
 class OfferPageViewPagination(PageNumberPagination):
@@ -129,8 +129,30 @@ class CompletedOrderCountView(APIView):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.all().order_by('-updated_at')
     serializer_class = ReviewSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['business_user', 'reviewer']
+    ordering_fields = ['updated_at', 'rating']
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsAuthenticated(), IsCustomerUser()]
+        return [permission() for permission in self.permission_classes]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        business_user_id = self.request.query_params.get('business_user_id')
+        if business_user_id:
+            queryset = queryset.filter(business_user__id=business_user_id)
+
+        reviewer_id = self.request.query_params.get('reviewer_id')
+        if reviewer_id:
+            queryset = queryset.filter(reviewer__id=reviewer_id)
+
+        return queryset
 
 
 class BaseInfoView(APIView):

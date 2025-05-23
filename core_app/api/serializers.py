@@ -28,8 +28,6 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetails
-        user = serializers.PrimaryKeyRelatedField(
-            queryset=UserProfile.objects.all())
         fields = ['id', 'offer', 'title', 'revisions', 'delivery_time_in_days',
                   'price', 'features', 'offer_type']
         extra_kwargs = {
@@ -37,7 +35,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        features_data = validated_data.pop('features')
+        features_data = validated_data.pop('features', [])
         offer_detail = OfferDetails.objects.create(**validated_data)
 
         for feature_data in features_data:
@@ -79,8 +77,6 @@ class OfferDetailReferenceSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return f"/offerdetails/{obj.id}/"
 
-# Create a separate serializer for listing offers
-
 
 class OfferListSerializer(serializers.ModelSerializer):
     details = OfferDetailReferenceSerializer(many=True, read_only=True)
@@ -116,9 +112,6 @@ class OfferSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Unknown fields: {', '.join(unknown_fields)}")
         return super().validate(attrs)
-
-    def get_user(self, obj):
-        return obj.user.id
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')
@@ -242,3 +235,16 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'business_user', 'reviewer', 'rating', 'description',
                   'created_at', 'updated_at']
+
+        def validate(self, data):
+            request = self.context.get('request')
+            if request and request.method == 'POST':
+                business_user = data.get('business_user')
+                reviewer = request.user.main_user
+
+            if Review.objects.filter(business_user=business_user, reviewer=reviewer).exists():
+                raise serializers.ValidationError(
+                    "You have already given a review for this business profile."
+                )
+
+            return data

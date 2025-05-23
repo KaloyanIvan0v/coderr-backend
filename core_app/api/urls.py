@@ -12,7 +12,7 @@ router.register(r'orders', OrderViewSet, basename='orders')
 router.register(r'offers', OfferViewSet, basename='offers')
 router.register(r'offerdetails', OfferDetailViewSet,
                 basename='offerdetails')
-router.register(r'reviews', ReviewViewSet)
+router.register(r'reviews', ReviewViewSet, basename='reviews')
 
 urlpatterns = [
     path('', include(router.urls)),
