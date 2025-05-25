@@ -13,10 +13,21 @@ class IsBusinessUser(BasePermission):
 
 
 class IsOwner(BasePermission):
-    message = "You do not have permission to access this resource."
+    message = "You can only modify your own content"
 
     def has_object_permission(self, request, view, obj):
-        return obj.user.id == request.user.id
+        # Handle different model types
+        if hasattr(obj, 'user'):
+            # For models with 'user' field (like Offer)
+            return obj.user.user.id == request.user.id
+        elif hasattr(obj, 'reviewer'):
+            # For Review model
+            return obj.reviewer.user.id == request.user.id
+        elif hasattr(obj, 'customer_user'):
+            # For Order model (if customer is updating)
+            return obj.customer_user.user.id == request.user.id
+
+        return False
 
 
 class IsCustomerUser(BasePermission):

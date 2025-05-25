@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
+from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import api_view, permission_classes
 
 
 from rest_framework import viewsets, filters
@@ -16,7 +17,7 @@ from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
 from .serializers import OfferSerializer, \
     OfferDetailSerializer, OfferFeaturesSerializer, OfferListSerializer, \
     OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer, \
-    ReviewSerializer
+    ReviewSerializer, BaseInfoSerializer
 from user_auth_app.models import UserProfile
 from .filters import OfferFilter
 from .permissions.main_permissions import IsBusinessUser, IsOwner, IsCustomerUser
@@ -139,6 +140,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [IsAuthenticated(), IsCustomerUser()]
+        elif self.action in ['update', 'partial_update']:
+            return [IsAuthenticated(), IsCustomerUser(), IsOwner()]
+        elif self.action == 'destroy':
+            return [IsAuthenticated(), IsCustomerUser(), IsOwner()]
         return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
@@ -155,14 +160,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class BaseInfoView(APIView):
-    permission_classes = [AllowAny]
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def base_info_view(request):
+    try:
+        review_count = Review.objects.count()
 
-    def get(self, request):
+        avg_rating = Review.objects.aggregate(
+            avg_rating=Avg('rating')
+        )['avg_rating']
+        average_rating = round(avg_rating, 1) if avg_rating else 0.0
+
+        business_profile_count = UserProfile.objects.filter(
+            type='business'
+        ).count()
+
+        offer_count = Offer.objects.count()
+
         data = {
-            "review_count": 10,
-            "average_rating": 4.6,
-            "business_profile_count": 45,
-            "offer_count": 150
+            "review_count": review_count,
+            "average_rating": average_rating,
+            "business_profile_count": business_profile_count,
+            "offer_count": offer_count
         }
-        return Response(data)
+
+        serializer = BaseInfoSerializer(data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Exception:
+        return Response(
+            {"error": "Internal Server Error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

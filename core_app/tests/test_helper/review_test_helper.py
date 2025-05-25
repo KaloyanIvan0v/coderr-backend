@@ -12,3 +12,10 @@ def create_review(test_case, business_user, reviewer):
         created_at=timezone.now(),
         updated_at=timezone.now()
     )
+
+
+TEST_REVIEW_DATA = {
+    "business_user": 2,
+    "rating": random.randint(1, 5),
+    "description": "Test description for review",
+}

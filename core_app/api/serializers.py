@@ -1,10 +1,6 @@
 from rest_framework import serializers
-from user_auth_app.models import UserProfile
 from core_app.models import Offer, OfferDetails, OfferFeatures, \
     Review, Order, OrderFeatures
-from core_app.models import OfferDetails
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.exceptions import NotFound
 from django.utils import timezone
 
@@ -235,16 +231,35 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'business_user', 'reviewer', 'rating', 'description',
                   'created_at', 'updated_at']
+        read_only_fields = ['reviewer']
 
-        def validate(self, data):
-            request = self.context.get('request')
-            if request and request.method == 'POST':
-                business_user = data.get('business_user')
-                reviewer = request.user.main_user
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and request.method == 'POST':
+            business_user = data.get('business_user')
+            reviewer = request.user.main_user
 
             if Review.objects.filter(business_user=business_user, reviewer=reviewer).exists():
                 raise serializers.ValidationError(
                     "You have already given a review for this business profile."
                 )
 
-            return data
+        return data
+
+    def create(self, validated_data):
+        validated_data['reviewer'] = self.context['request'].user.main_user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance.rating = validated_data.get('rating', instance.rating)
+        instance.description = validated_data.get(
+            'description', instance.description)
+        instance.save()
+        return instance
+
+
+class BaseInfoSerializer(serializers.Serializer):
+    review_count = serializers.IntegerField()
+    average_rating = serializers.FloatField()
+    business_profile_count = serializers.IntegerField()
+    offer_count = serializers.IntegerField()

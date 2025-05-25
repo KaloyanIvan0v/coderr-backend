@@ -1,6 +1,7 @@
 from django.db import models
 from user_auth_app.models import UserProfile
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Offer(models.Model):
@@ -73,7 +74,8 @@ class Review(models.Model):
         UserProfile, related_name='received_ratings', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(
         UserProfile, related_name='given_ratings', on_delete=models.CASCADE)
-    rating = models.IntegerField()
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
