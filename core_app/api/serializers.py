@@ -3,6 +3,8 @@ from core_app.models import Offer, OfferDetails, OfferFeatures, \
     Review, Order, OrderFeatures
 from rest_framework.exceptions import NotFound
 from django.utils import timezone
+import os
+from django.core.exceptions import ValidationError
 
 
 class OfferFeaturesSerializer(serializers.ModelSerializer):
@@ -102,12 +104,29 @@ class OfferSerializer(serializers.ModelSerializer):
         extra_kwargs = {'id': {'read_only': True}}
 
     def validate(self, attrs):
-        unknown_fields = set(self.initial_data.keys()) - \
-            set(self.fields.keys())
-        if unknown_fields:
-            raise serializers.ValidationError(
-                f"Unknown fields: {', '.join(unknown_fields)}")
+        request = self.context.get('request')
+        if request and request.content_type and 'application/json' in request.content_type:
+            unknown_fields = set(self.initial_data.keys()
+                                 ) - set(self.fields.keys())
+            if unknown_fields:
+                raise serializers.ValidationError(
+                    f"Unknown fields: {', '.join(unknown_fields)}")
         return super().validate(attrs)
+
+    def validate_image(self, value):
+        if value:
+            if value.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError(
+                    "Bild ist zu groß. Maximum 5MB erlaubt.")
+
+            # Dateierweiterung prüfen
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            ext = os.path.splitext(value.name)[1].lower()
+            if ext not in valid_extensions:
+                raise serializers.ValidationError(
+                    "Nur JPG, PNG und GIF Dateien sind erlaubt.")
+
+        return value
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')

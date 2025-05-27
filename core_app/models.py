@@ -1,13 +1,22 @@
+import os
+import uuid
 from django.db import models
 from user_auth_app.models import UserProfile
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
+def offer_image_path(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('offers', filename)
+
+
 class Offer(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='offers/', null=True, blank=True)
+    image = models.ImageField(
+        upload_to=offer_image_path, null=True, blank=True)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

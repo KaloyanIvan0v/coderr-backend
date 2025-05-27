@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from user_auth_app.models import UserProfile
 from user_auth_app.api.serializers import RegistrationSerializer, LogInSerializer
@@ -15,6 +16,7 @@ from .serializers import ProfileSerializer, ProfileTypeListSerializer
 class ProfileView(RetrieveAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = ProfileSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_object(self):
         user_id = self.kwargs.get('pk')
@@ -29,7 +31,7 @@ class ProfileView(RetrieveAPIView):
                             status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(
-            user_profile, data=request.data, partial=True)
+            user_profile, data=request.data, partial=True, context={'request': request})
 
         if serializer.is_valid():
             serializer.save()

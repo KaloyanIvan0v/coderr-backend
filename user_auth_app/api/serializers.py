@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from user_auth_app.models import UserProfile
+import os
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -9,14 +10,35 @@ class ProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(
         source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
+    file_url = serializers.SerializerMethodField()
     user = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(), required=False)
 
     class Meta:
         model = UserProfile
         fields = ['user', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
-                  'location', 'tel', 'description', 'working_hours', 'created_at']
-        read_only_fields = ['created_at']
+                  'file_url', 'location', 'tel', 'description', 'working_hours']
+        read_only_fields = ['created_at', 'file_url']
+
+    def get_file_url(self, obj):
+        if obj.file:
+            return obj.file.url
+        return None
+
+    def validate_file(self, value):
+        if value:
+
+            if value.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError(
+                    "Datei ist zu groß. Maximum 5MB erlaubt.")
+
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            ext = os.path.splitext(value.name)[1].lower()
+            if ext not in valid_extensions:
+                raise serializers.ValidationError(
+                    "Only JPG, PNG and GIF files are allowed.")
+
+        return value
 
     def update(self, instance, validated_data):
 
@@ -55,7 +77,7 @@ class ProfileTypeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user', 'username',  'first_name', 'last_name', 'file',
-                  'location', 'tel', 'description', 'working_hours', 'type']
+                  'type', 'location', 'tel', 'description', 'working_hours']
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

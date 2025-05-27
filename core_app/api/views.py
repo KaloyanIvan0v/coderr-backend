@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
@@ -35,6 +36,7 @@ class OfferViewSet(viewsets.ModelViewSet):
     filterset_class = OfferFilter
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
         if self.action == 'create':
