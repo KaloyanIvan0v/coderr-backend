@@ -86,11 +86,17 @@ class OfferListSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at', 'details', 'min_price',
                   'min_delivery_time', 'user_details']
 
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     if instance.user and instance.user.user:
+    #         data['user'] = instance.user.user.id
+    #     return data
+
     def get_user_details(self, obj):
         return {
-            'first_name': obj.user.user.first_name,
-            'last_name': obj.user.user.last_name,
-            'username': obj.user.user.username
+            'first_name': obj.user.first_name,
+            'last_name': obj.user.last_name,
+            'username': obj.user.username
         }
 
 
@@ -109,6 +115,12 @@ class OfferSerializer(serializers.ModelSerializer):
             'created_at': {'read_only': True},
             'updated_at': {'read_only': True},
         }
+
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     if instance.user and instance.user.user:
+    #         data['user'] = instance.user.user.id
+    #     return data
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -153,7 +165,7 @@ class OfferSerializer(serializers.ModelSerializer):
         # Setze user aus dem Request Context
         request = self.context.get('request')
 
-        user = request.main_user if request else None
+        user = request.user if request else None
 
         # Erstelle das Offer mit den berechneten Werten
         offer = Offer.objects.create(
@@ -243,7 +255,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 f"OfferDetail mit der ID {offer_detail_id} existiert nicht."
             )
 
-        customer_user = self.context['request'].user.main_user
+        customer_user = self.context['request'].user
         order = Order.objects.create(
             customer_user=customer_user,
             business_user=offer_detail.offer.user,

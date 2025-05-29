@@ -18,13 +18,13 @@ ORDER_DATA = {
 }
 
 
-def create_order(test_case, profile, business_profile):
+def create_order(test_case, user, business_user):
     order_data = ORDER_DATA.copy()
     features = order_data.pop('features', [])
 
     order = Order.objects.create(
-        customer_user=profile,
-        business_user=business_profile,
+        customer_user=user,
+        business_user=business_user,
         **order_data)
 
     for feature in features:

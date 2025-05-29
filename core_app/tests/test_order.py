@@ -24,7 +24,7 @@ class OrderViewTests(APITestCase):
         self.offer = create_offer(self)
         self.offer_detail = create_offer_detail(self.offer)
 
-        self.order = create_order(self, self.profile, self.business_profile)
+        self.order = create_order(self, self.user, self.business_user)
 
     def test_get_order_list(self):
         self.client.force_authenticate(user=self.user)
@@ -59,8 +59,8 @@ class OrderViewTests(APITestCase):
     def test_create_order_unauthorized(self):
         url = reverse('orders-list')
         data = ORDER_DATA.copy()
-        data['customer_user'] = self.profile.id
-        data['business_user'] = self.business_profile.id
+        data['customer_user'] = self.user.id
+        data['business_user'] = self.business_user.id
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 

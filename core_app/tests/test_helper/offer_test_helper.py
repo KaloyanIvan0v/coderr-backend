@@ -4,11 +4,10 @@ from django.utils import timezone
 
 def create_offer(test_case):
     return Offer.objects.create(
-        user=test_case.business_profile,
-        title="Test Offer",
-        description="Test Description",
-        created_at=timezone.now(),
-        updated_at=timezone.now(),
+        user=test_case.business_user,
+        title="Multipaket",
+        image=None,
+        description="Ein umfassendes Grafikdesign-Paket für Unternehmen.",
         min_price=100.00,
         min_delivery_time=5,
     )

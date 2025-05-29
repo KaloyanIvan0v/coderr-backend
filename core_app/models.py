@@ -2,8 +2,8 @@ import os
 import uuid
 from django.db import models
 from user_auth_app.models import UserProfile
-from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from user_auth_app.models import User
 
 
 def offer_image_path(instance, filename):
@@ -13,7 +13,7 @@ def offer_image_path(instance, filename):
 
 
 class Offer(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     image = models.ImageField(
         upload_to=offer_image_path, null=True, blank=True)
@@ -52,9 +52,9 @@ class OfferFeatures(models.Model):
 
 class Order(models.Model):
     customer_user = models.ForeignKey(
-        UserProfile, related_name='customer_orders', on_delete=models.CASCADE)
+        User, related_name='customer_orders', on_delete=models.CASCADE)
     business_user = models.ForeignKey(
-        UserProfile, related_name='business_orders', on_delete=models.CASCADE)
+        User, related_name='business_orders', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     revisions = models.IntegerField()
     delivery_time_in_days = models.IntegerField()

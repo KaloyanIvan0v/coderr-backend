@@ -23,7 +23,7 @@ class OfferViewTests(APITestCase):
             self.business_user_2, "business")
 
         offer_data = OFFER_DATA_CREATE.copy()
-        offer_data['user'] = self.business_profile
+        offer_data['user'] = self.business_user
 
         self.offer = Offer.objects.create(**offer_data)
 

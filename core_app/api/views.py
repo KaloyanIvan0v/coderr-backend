@@ -88,8 +88,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.none()
 
         return Order.objects.filter(
-            Q(customer_user=user_profile) |
-            Q(business_user=user_profile)
+            Q(customer_user=user) |
+            Q(business_user=user)
         ).order_by('-created_at')
 
     def create(self, request, *args, **kwargs):
@@ -106,10 +106,9 @@ class OrderCountView(APIView):
     serializer_class = OrderCountSerializer
 
     def get(self, request, business_user_id):
-        user_profile = get_object_or_404(
-            UserProfile, user__id=business_user_id)
+        business_user = get_object_or_404(User, id=business_user_id)
         order_count = Order.objects.filter(
-            business_user=user_profile,
+            business_user=business_user,
             status="in_progress"
         ).count()
 
@@ -121,10 +120,9 @@ class CompletedOrderCountView(APIView):
     serializer_class = CompletedOrderCountSerializer
 
     def get(self, request, business_user_id):
-        user = get_object_or_404(User, id=business_user_id)
-        user_profile = get_object_or_404(UserProfile, user=user)
+        business_user = get_object_or_404(User, id=business_user_id)
         order_count = Order.objects.filter(
-            business_user=user_profile,
+            business_user=business_user,
             status="completed"
         ).count()
 

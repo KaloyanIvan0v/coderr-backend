@@ -13,11 +13,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     user = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(), required=False)
+    created_at = serializers.DateTimeField(
+        read_only=True, format='%Y-%m-%dT%H:%M:%S')
 
     class Meta:
         model = UserProfile
         fields = ['user', 'username', 'email', 'type', 'first_name', 'last_name', 'file',
-                  'file_url', 'location', 'tel', 'description', 'working_hours']
+                  'file_url', 'location', 'tel', 'description', 'working_hours', 'created_at']
         read_only_fields = ['created_at', 'file_url']
 
     def get_file_url(self, obj):

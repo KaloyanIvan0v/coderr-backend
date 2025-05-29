@@ -19,7 +19,7 @@ class IsOwner(BasePermission):
         # Handle different model types
         if hasattr(obj, 'user'):
             # For models with 'user' field (like Offer)
-            return obj.user.user.id == request.user.id
+            return obj.user.id == request.user.id
         elif hasattr(obj, 'reviewer'):
             # For Review model
             return obj.reviewer.user.id == request.user.id
