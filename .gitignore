@@ -35,4 +35,6 @@ venv.bak/
 
 #other
 
-
+#media
+media/offers/
+media/profile_images/

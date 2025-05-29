@@ -23,7 +23,7 @@ class ReviewViewTests(APITestCase):
             self.reviewer, "customer")
 
         self.review = create_review(
-            self, self.business_profile, self.reviewer_profile)
+            self, self.business_user, self.reviewer)
 
     def test_get_reviews(self):
         self.client.force_authenticate(user=self.user)
@@ -41,17 +41,21 @@ class ReviewViewTests(APITestCase):
     def test_create_review(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('reviews-list')
-        data = TEST_REVIEW_DATA
+        data = {
+            "business_user": self.business_user.id,
+            "rating": 5,
+            "description": "Great service!"
+        }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Review.objects.count(), 2)
-        self.assertEqual(Review.objects.last().reviewer, self.user.main_user)
+        self.assertEqual(Review.objects.last().reviewer, self.user)
 
     def test_create_review_bad_request_review_already_exists(self):
         self.client.force_authenticate(user=self.reviewer)
         url = reverse('reviews-list')
         data = {
-            "business_user": self.business_profile.id,
+            "business_user": self.business_user.id,
             "rating": 5,
             "description": "Trying to review again"
         }

@@ -177,6 +177,8 @@ class OfferSerializer(serializers.ModelSerializer):
 
         for detail_data in details_data:
             features_data = detail_data.pop('features', [])
+            # Remove 'offer' key if it exists to avoid conflict
+            detail_data.pop('offer', None)
             offer_detail = OfferDetails.objects.create(
                 offer=offer, **detail_data)
 
@@ -206,6 +208,8 @@ class OfferSerializer(serializers.ModelSerializer):
             # Erstelle neue Details
             for detail_data in details_data:
                 features_data = detail_data.pop('features', [])
+                # Remove 'offer' key if it exists to avoid conflict
+                detail_data.pop('offer', None)
                 offer_detail = OfferDetails.objects.create(
                     offer=instance, **detail_data)
 
@@ -302,7 +306,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.method == 'POST':
             business_user = data.get('business_user')
-            reviewer = request.user.main_user
+            reviewer = request.user
+
+            # Prüfen ob business_user tatsächlich ein Business User ist
+            if not hasattr(business_user, 'main_user') or business_user.main_user.type != 'business':
+                raise serializers.ValidationError(
+                    "The selected user is not a business user."
+                )
 
             if Review.objects.filter(business_user=business_user, reviewer=reviewer).exists():
                 raise serializers.ValidationError(
@@ -312,7 +322,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        validated_data['reviewer'] = self.context['request'].user.main_user
+        validated_data['reviewer'] = self.context['request'].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

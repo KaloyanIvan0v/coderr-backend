@@ -82,11 +82,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         if user.is_staff or user.is_superuser:
             return Order.objects.all().order_by('-created_at')
 
-        try:
-            user_profile = user.main_user
-        except AttributeError:
-            return Order.objects.none()
-
         return Order.objects.filter(
             Q(customer_user=user) |
             Q(business_user=user)

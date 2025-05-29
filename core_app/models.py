@@ -80,9 +80,9 @@ class OrderFeatures(models.Model):
 
 class Review(models.Model):
     business_user = models.ForeignKey(
-        UserProfile, related_name='received_ratings', on_delete=models.CASCADE)
+        User, related_name='received_ratings', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(
-        UserProfile, related_name='given_ratings', on_delete=models.CASCADE)
+        User, related_name='given_ratings', on_delete=models.CASCADE)
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)])
     description = models.TextField()

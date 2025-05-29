@@ -22,10 +22,10 @@ class IsOwner(BasePermission):
             return obj.user.id == request.user.id
         elif hasattr(obj, 'reviewer'):
             # For Review model
-            return obj.reviewer.user.id == request.user.id
+            return obj.reviewer.id == request.user.id
         elif hasattr(obj, 'customer_user'):
             # For Order model (if customer is updating)
-            return obj.customer_user.user.id == request.user.id
+            return obj.customer_user.id == request.user.id
 
         return False
 
