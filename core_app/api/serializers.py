@@ -101,7 +101,14 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = ['id', 'user', 'title', 'image', 'description',
                   'created_at', 'updated_at', 'details', 'min_price', 'min_delivery_time']
-        extra_kwargs = {'id': {'read_only': True}}
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'user': {'read_only': True},
+            'min_price': {'read_only': True},
+            'min_delivery_time': {'read_only': True},
+            'created_at': {'read_only': True},
+            'updated_at': {'read_only': True},
+        }
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -117,20 +124,44 @@ class OfferSerializer(serializers.ModelSerializer):
         if value:
             if value.size > 5 * 1024 * 1024:
                 raise serializers.ValidationError(
-                    "Bild ist zu groß. Maximum 5MB erlaubt.")
+                    "Image is too large. Maximum 5MB allowed.")
 
-            # Dateierweiterung prüfen
-            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            valid_extensions = ['.jpg', '.png']
             ext = os.path.splitext(value.name)[1].lower()
             if ext not in valid_extensions:
                 raise serializers.ValidationError(
-                    "Nur JPG, PNG und GIF Dateien sind erlaubt.")
+                    "Only JPG files are allowed.")
 
         return value
 
+    def _calculate_min_values(self, details_data):
+        if not details_data:
+            return 0, 0
+
+        min_price = min(detail['price'] for detail in details_data)
+        min_delivery_time = min(detail['delivery_time_in_days']
+                                for detail in details_data)
+
+        return min_price, min_delivery_time
+
     def create(self, validated_data):
         details_data = validated_data.pop('details')
-        offer = Offer.objects.create(**validated_data)
+
+        # Berechne min_price und min_delivery_time aus den Details
+        min_price, min_delivery_time = self._calculate_min_values(details_data)
+
+        # Setze user aus dem Request Context
+        request = self.context.get('request')
+
+        user = request.main_user if request else None
+
+        # Erstelle das Offer mit den berechneten Werten
+        offer = Offer.objects.create(
+            user=user,
+            min_price=min_price,
+            min_delivery_time=min_delivery_time,
+            **validated_data
+        )
 
         for detail_data in details_data:
             features_data = detail_data.pop('features', [])
@@ -148,17 +179,19 @@ class OfferSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get(
             'description', instance.description)
-        instance.min_price = validated_data.get(
-            'min_price', instance.min_price)
-        instance.min_delivery_time = validated_data.get(
-            'min_delivery_time', instance.min_delivery_time)
         instance.image = validated_data.get('image', instance.image)
-        instance.save()
 
         if details_data:
+            # Berechne neue min_price und min_delivery_time
+            min_price, min_delivery_time = self._calculate_min_values(
+                details_data)
+            instance.min_price = min_price
+            instance.min_delivery_time = min_delivery_time
 
+            # Lösche alte Details
             instance.details.all().delete()
 
+            # Erstelle neue Details
             for detail_data in details_data:
                 features_data = detail_data.pop('features', [])
                 offer_detail = OfferDetails.objects.create(
@@ -168,6 +201,7 @@ class OfferSerializer(serializers.ModelSerializer):
                     OfferFeatures.objects.create(
                         offer_detail=offer_detail, **feature_data)
 
+        instance.save()
         return instance
 
 

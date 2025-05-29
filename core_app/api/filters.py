@@ -23,4 +23,4 @@ class OfferFilter(django_filters.FilterSet):
         if value < 0:
             raise ValidationError(
                 {'max_delivery_time': 'Darf nicht negativ sein'})
-        return queryset.annotate(min_delivery_time=Min('details__delivery_time')).filter(min_delivery_time__lte=value)
+        return queryset.annotate(min_delivery_time_calc=Min('details__delivery_time_in_days')).filter(min_delivery_time_calc__lte=value)
