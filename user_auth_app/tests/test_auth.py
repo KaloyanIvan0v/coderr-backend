@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from core_app.models import UserProfile
+from user_auth_app.models import UserProfile
 
 
 class AuthViewTests(APITestCase):

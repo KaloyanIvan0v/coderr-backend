@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
@@ -27,7 +27,7 @@ class ProfileView(RetrieveAPIView):
         user_profile = self.get_object()
 
         if request.user.id != user_profile.user.id:
-            return Response({"detail": "Sie sind nicht berechtigt, dieses Profil zu bearbeiten."},
+            return Response({"detail": "You are not authorized to edit this profile."},
                             status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(

@@ -1,12 +1,11 @@
 from django.urls import reverse
-from django.contrib.auth.models import User
 
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from core_app.models import Order, UserProfile, OrderFeatures, Offer, OfferDetails, OfferFeatures
+from core_app.models import Order
 from .test_helper.order_test_helper import ORDER_DATA, create_order
-from .test_helper.offer_test_helper import OFFER_DATA, create_offer, create_offer_detail
+from .test_helper.offer_test_helper import create_offer, create_offer_detail
 from .test_helper.user_test_helper import create_user, create_user_profile, create_superuser
 
 

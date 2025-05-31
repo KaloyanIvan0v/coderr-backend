@@ -2,9 +2,8 @@ from django.contrib.auth.models import User
 from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.decorators import api_view, permission_classes
-
-
 from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -12,7 +11,6 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
 
 from core_app.models import Offer, Order, Review, OfferDetails, OfferFeatures
 from .serializers import OfferSerializer, \

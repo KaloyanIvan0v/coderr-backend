@@ -32,7 +32,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
             if value.size > 5 * 1024 * 1024:
                 raise serializers.ValidationError(
-                    "Datei ist zu groß. Maximum 5MB erlaubt.")
+                    "File is too large. Maximum 5MB allowed.")
 
             valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
             ext = os.path.splitext(value.name)[1].lower()
@@ -117,7 +117,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def save(self):
         pw = self.validated_data['password']
         repeated_pw = self.validated_data['repeated_password']
-        username = self.validated_data.get('username', '')
         type = self.validated_data.get('type', 'customer')
 
         if pw != repeated_pw:
@@ -131,12 +130,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         account.set_password(pw)
         account.save()
-
-        profile = UserProfile.objects.create(
-            user=account,
-            type=type
-        )
-
         return account
 
 

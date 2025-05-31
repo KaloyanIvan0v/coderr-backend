@@ -1,5 +1,5 @@
-from core_app.models import UserProfile
 from django.contrib.auth.models import User
+from user_auth_app.models import UserProfile
 
 
 def create_user(username):

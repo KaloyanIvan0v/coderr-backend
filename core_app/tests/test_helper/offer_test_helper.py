@@ -1,5 +1,4 @@
 from core_app.models import Offer, OfferDetails, OfferFeatures
-from django.utils import timezone
 
 
 def create_offer(test_case):

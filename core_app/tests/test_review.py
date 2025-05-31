@@ -4,7 +4,6 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from core_app.models import Review
-
 from .test_helper.user_test_helper import create_user, create_user_profile
 from .test_helper.review_test_helper import create_review, TEST_REVIEW_DATA
 

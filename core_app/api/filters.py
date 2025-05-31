@@ -16,11 +16,11 @@ class OfferFilter(django_filters.FilterSet):
 
     def filter_min_price(self, queryset, name, value):
         if value < 0:
-            raise ValidationError({'min_price': 'Darf nicht negativ sein'})
-        return queryset.annotate(min_price=Min('details__price')).filter(min_price__gte=value)
+            raise ValidationError({'min_price': 'Must not be negative'})
+        return queryset.annotate(calculated_min_price=Min('details__price')).filter(calculated_min_price__gte=value)
 
     def filter_max_delivery_time(self, queryset, name, value):
         if value < 0:
             raise ValidationError(
-                {'max_delivery_time': 'Darf nicht negativ sein'})
+                {'max_delivery_time': 'Must not be negative'})
         return queryset.annotate(min_delivery_time_calc=Min('details__delivery_time_in_days')).filter(min_delivery_time_calc__lte=value)

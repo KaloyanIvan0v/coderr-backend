@@ -1,10 +1,9 @@
+import os
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 from core_app.models import Offer, OfferDetails, OfferFeatures, \
     Review, Order, OrderFeatures
-from rest_framework.exceptions import NotFound
-from django.utils import timezone
-import os
-from django.core.exceptions import ValidationError
 
 
 class OfferFeaturesSerializer(serializers.ModelSerializer):
@@ -86,12 +85,6 @@ class OfferListSerializer(serializers.ModelSerializer):
                   'created_at', 'updated_at', 'details', 'min_price',
                   'min_delivery_time', 'user_details']
 
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     if instance.user and instance.user.user:
-    #         data['user'] = instance.user.user.id
-    #     return data
-
     def get_user_details(self, obj):
         return {
             'first_name': obj.user.first_name,
@@ -115,12 +108,6 @@ class OfferSerializer(serializers.ModelSerializer):
             'created_at': {'read_only': True},
             'updated_at': {'read_only': True},
         }
-
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     if instance.user and instance.user.user:
-    #         data['user'] = instance.user.user.id
-    #     return data
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -159,15 +146,12 @@ class OfferSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         details_data = validated_data.pop('details')
 
-        # Berechne min_price und min_delivery_time aus den Details
         min_price, min_delivery_time = self._calculate_min_values(details_data)
 
-        # Setze user aus dem Request Context
         request = self.context.get('request')
 
         user = request.user if request else None
 
-        # Erstelle das Offer mit den berechneten Werten
         offer = Offer.objects.create(
             user=user,
             min_price=min_price,
@@ -177,7 +161,7 @@ class OfferSerializer(serializers.ModelSerializer):
 
         for detail_data in details_data:
             features_data = detail_data.pop('features', [])
-            # Remove 'offer' key if it exists to avoid conflict
+
             detail_data.pop('offer', None)
             offer_detail = OfferDetails.objects.create(
                 offer=offer, **detail_data)
@@ -196,19 +180,17 @@ class OfferSerializer(serializers.ModelSerializer):
         instance.image = validated_data.get('image', instance.image)
 
         if details_data:
-            # Berechne neue min_price und min_delivery_time
+
             min_price, min_delivery_time = self._calculate_min_values(
                 details_data)
             instance.min_price = min_price
             instance.min_delivery_time = min_delivery_time
 
-            # Lösche alte Details
             instance.details.all().delete()
 
-            # Erstelle neue Details
             for detail_data in details_data:
                 features_data = detail_data.pop('features', [])
-                # Remove 'offer' key if it exists to avoid conflict
+
                 detail_data.pop('offer', None)
                 offer_detail = OfferDetails.objects.create(
                     offer=instance, **detail_data)
@@ -308,7 +290,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             business_user = data.get('business_user')
             reviewer = request.user
 
-            # Prüfen ob business_user tatsächlich ein Business User ist
             if not hasattr(business_user, 'main_user') or business_user.main_user.type != 'business':
                 raise serializers.ValidationError(
                     "The selected user is not a business user."

@@ -1,9 +1,8 @@
 import os
 import uuid
 from django.db import models
-from user_auth_app.models import UserProfile
 from django.core.validators import MinValueValidator, MaxValueValidator
-from user_auth_app.models import User
+from django.contrib.auth.models import User
 
 
 def offer_image_path(instance, filename):
