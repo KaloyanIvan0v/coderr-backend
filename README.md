@@ -1,4 +1,4 @@
-![alt text](/media/readme/logo_coderr.svg)
+![project logo coder](media/readme/logo_coderr.svg)
 
 ## a freelancer platform build with Django
 
