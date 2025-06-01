@@ -17,6 +17,40 @@ This is the backend of a Freelancer Platform built with Django and Django REST F
 
 Follow these steps to set up and run the Django backend locally:
 
+> ### ⚙️ Prerequisites
+
+#### ✅ Python 3.10+ must be installed
+
+You can download it manually from:  
+ 👉 https://www.python.org/downloads/
+
+Or install it via terminal/console:
+
+- **Windows**
+
+```bash
+winget install Python.Python.3
+```
+
+- **macOS**:
+
+```bash
+brew install python@3.10
+```
+
+- **Linux**:
+
+```bash
+sudo apt update
+sudo apt install python3 python3-venv python3-dev
+```
+
+- **Check installation**
+
+```bash
+python --version  #or python3 --version
+```
+
 ### 1. Clone the Repository
 
 ```bash
