@@ -1,4 +1,4 @@
-# Codder
+![alt text](/media/readme/logo_coderr.svg)
 
 ## a freelancer platform build with Django
 
