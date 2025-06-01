@@ -26,25 +26,35 @@ cd your-project-name
 
 ### 2. Create and Activate a Virtual Environment
 
+```bash
 python -m venv env
 source env/bin/activate # On macOS/Linux
 env\Scripts\activate # On Windows
+```
 
 ### 3. Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
 ### 4. Set Up the Database
 
+```bash
 python manage.py migrate
+```
 
 ### 5. Create a Superuser (for Admin Panel)
 
+```bash
 python manage.py createsuperuser
+```
 
 ### 6. Run the Development Server
 
+```bash
 python manage.py runserver
+```
 
 # License
 
