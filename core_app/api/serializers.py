@@ -25,11 +25,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetails
-        fields = ['id', 'offer', 'title', 'revisions', 'delivery_time_in_days',
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days',
                   'price', 'features', 'offer_type']
-        extra_kwargs = {
-            'offer': {'required': False}
-        }
 
     def create(self, validated_data):
         features_data = validated_data.pop('features', [])

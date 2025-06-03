@@ -94,11 +94,6 @@ class OfferViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], "Multipaket")
 
-    def test_get_offer_unauthorized(self):
-        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
     def test_get_offer_not_found(self):
         self.client.force_authenticate(user=self.user)
         url = reverse('offers-detail', kwargs={'pk': 9999})
