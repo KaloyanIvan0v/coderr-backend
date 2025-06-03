@@ -28,6 +28,20 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days',
                   'price', 'features', 'offer_type']
 
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and request.content_type and 'application/json' in request.content_type:
+            try:
+                unknown_fields = set(
+                    self.initial_data.keys()) - set(self.fields.keys())
+                if unknown_fields:
+                    raise serializers.ValidationError(
+                        f"Unknown fields in details: {', '.join(unknown_fields)}")
+            except AttributeError:
+                # initial_data not available, skip unknown field validation
+                pass
+        return super().validate(attrs)
+
     def create(self, validated_data):
         features_data = validated_data.pop('features', [])
         offer_detail = OfferDetails.objects.create(**validated_data)
@@ -51,7 +65,6 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         instance.save()
 
         if features_data:
-
             instance.features.all().delete()
 
             for feature_data in features_data:
@@ -106,14 +119,27 @@ class OfferSerializer(serializers.ModelSerializer):
             'updated_at': {'read_only': True},
         }
 
+    def to_internal_value(self, data):
+        if 'details' in data:
+            for detail_data in data['details']:
+                detail_serializer = OfferDetailSerializer(context=self.context)
+                detail_serializer.initial_data = detail_data
+                detail_serializer.is_valid(raise_exception=True)
+
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         request = self.context.get('request')
         if request and request.content_type and 'application/json' in request.content_type:
-            unknown_fields = set(self.initial_data.keys()
-                                 ) - set(self.fields.keys())
-            if unknown_fields:
-                raise serializers.ValidationError(
-                    f"Unknown fields: {', '.join(unknown_fields)}")
+            try:
+                unknown_fields = set(
+                    self.initial_data.keys()) - set(self.fields.keys())
+                if unknown_fields:
+                    raise serializers.ValidationError(
+                        f"Unknown fields: {', '.join(unknown_fields)}")
+            except AttributeError:
+                # initial_data not available, skip unknown field validation
+                pass
         return super().validate(attrs)
 
     def validate_image(self, value):
@@ -227,6 +253,20 @@ class OrderSerializer(serializers.ModelSerializer):
 
         read_only_fields = ['id', 'customer_user', 'business_user', 'title', 'revisions',
                             'delivery_time_in_days', 'price', 'offer_type', 'created_at', 'features']
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and request.content_type and 'application/json' in request.content_type:
+            try:
+                unknown_fields = set(
+                    self.initial_data.keys()) - set(self.fields.keys())
+                if unknown_fields:
+                    raise serializers.ValidationError(
+                        f"Unknown fields in details: {', '.join(unknown_fields)}")
+            except AttributeError:
+                # initial_data not available, skip unknown field validation
+                pass
+        return super().validate(attrs)
 
     def create(self, validated_data):
         offer_detail_id = validated_data.pop('offer_detail_id')

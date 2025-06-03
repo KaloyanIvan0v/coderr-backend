@@ -163,7 +163,7 @@ class OrderViewTests(APITestCase):
                       kwargs={'business_user_id': self.business_user.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['order_count'], 0)
+        self.assertEqual(response.data['completed_order_count'], 0)
 
     def test_completed_order_count_unauthorized(self):
         url = reverse(
