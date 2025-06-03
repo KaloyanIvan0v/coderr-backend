@@ -41,7 +41,7 @@ class OfferViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsBusinessUser()]
         elif self.action in ['update', 'partial_update', 'destroy']:
             return [IsAuthenticated(), IsBusinessUser(), IsOwner()]
-        return [permission() for permission in self.permission_classes]
+        return [AllowAny()]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
