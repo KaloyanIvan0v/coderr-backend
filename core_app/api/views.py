@@ -24,6 +24,8 @@ from .permissions.main_permissions import IsBusinessUser, IsOwner, IsCustomerUse
 
 class OfferPageViewPagination(PageNumberPagination):
     page_size = 6
+    page_size_query_param = 'page_size'
+    page_query_param = 'page'
 
 
 class OfferViewSet(viewsets.ModelViewSet):
