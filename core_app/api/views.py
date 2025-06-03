@@ -121,7 +121,7 @@ class CompletedOrderCountView(APIView):
             status="completed"
         ).count()
 
-        return Response({"order_count": order_count})
+        return Response({"completed_order_count": order_count})
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
