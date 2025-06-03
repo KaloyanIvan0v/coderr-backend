@@ -13,8 +13,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     user = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(), required=False)
-    created_at = serializers.DateTimeField(
-        read_only=True, format='%Y-%m-%dT%H:%M:%S')
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = UserProfile
